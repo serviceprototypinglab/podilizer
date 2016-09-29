@@ -20,8 +20,7 @@ public class Visitor {
             //MethodCallExpr methodCallExpr = javaProjectEntity.getMainClass().getMainMethod().getMethodCallExprs().get(0);
 
             JarBuilder jarBuilder = new JarBuilder();
-            //jarBuilder.createProjTree("/home/dord/Templates/emptyTestDirectory1");
-            jarBuilder.mvnBuild();
+            jarBuilder.createJar("/home/dord/Templates/emptyTestDirectory/");
 
 
 

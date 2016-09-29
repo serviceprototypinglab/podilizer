@@ -45,7 +45,7 @@ public class JarBuilder {
     public void setProjectToBuildLocation(Path projectToBuildLocation) {
         this.projectToBuildLocation = projectToBuildLocation;
     }
-    public void creatDir(String path){
+    private void creatDir(String path){
         File dir = new File(path);
         if (!dir.exists()){
             dir.mkdir();
@@ -53,24 +53,36 @@ public class JarBuilder {
             System.err.println("Failed to create a directory");
         }
     }
-    public void createProjTree(String path) throws IOException {
+    private void createProjTree(String path) throws IOException {
         creatDir(path);
-        Files.copy(Paths.get("additional/pom.xml"), Paths.get("/home/dord/Templates/emptyTestDirectory1/pom.xml"), REPLACE_EXISTING);
+        Files.copy(Paths.get("additional/pom.xml"), Paths.get(path + "pom.xml"), REPLACE_EXISTING);
         creatDir(path + "/src");
         creatDir(path + "/src/main");
         creatDir(path + "/src/main/java");
 
     }
-    public void mvnBuild() throws MavenInvocationException, URISyntaxException {
+    private void mvnBuild(String path) throws MavenInvocationException, URISyntaxException {
         InvocationRequest request = new DefaultInvocationRequest();
-
-//        URL url = this.getClass().getResource("/home/dord/Templates/emptyTestDirectory1/pom.xml");
-//        File file = new File(url.toURI());
-        request.setPomFile(new File("/home/dord/Templates/emptyTestDirectory1/pom.xml"));
+        request.setPomFile(new File(path + "pom.xml"));
         request.setGoals( Arrays.asList( "clean", "install" ) );
 
         Invoker invoker = new DefaultInvoker();
+        invoker.setMavenHome(new File("/usr/share/maven"));
         invoker.execute( request );
+    }
+    public void createJar(String path){
+        try {
+            createProjTree(path);
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+        try {
+            mvnBuild(path);
+        } catch (MavenInvocationException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
     }
 
 
