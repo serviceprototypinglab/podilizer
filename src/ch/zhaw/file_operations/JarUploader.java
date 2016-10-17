@@ -5,9 +5,9 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 class JarUploader {
-    private String region = "us-west-2";
+    private String region = ConfigReader.getConfig().getRegion();
     private String runtime = "java8";
-    private String role = "arn:aws:iam::520974061566:role/lambda_basic_execution";
+    private String role = ConfigReader.getConfig().getRole();
     private String functionName;
     private String zipFile;
     private String handler;

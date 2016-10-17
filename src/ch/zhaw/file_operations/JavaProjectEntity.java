@@ -1,6 +1,7 @@
 package ch.zhaw.file_operations;
 
 import ch.zhaw.exceptions.TooManyMainMethodsException;
+import japa.parser.ast.expr.NameExpr;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -9,14 +10,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by dord on 9/27/16.
- */
 public class JavaProjectEntity {
     private static final String pattern = "*.java";
     private Path location;
     private List<ClassEntity> classEntities;
+    private List<NameExpr> methodEntities;
     private int mainCount = 0;
+
 
     public JavaProjectEntity(Path location){
         this.location = location;
@@ -27,6 +27,8 @@ public class JavaProjectEntity {
         } catch (IOException e) {
             e.printStackTrace();
         }
+        methodEntities = findAllMethods(classEntities);
+
     }
 
     public class Finder extends SimpleFileVisitor<Path> {
@@ -63,6 +65,18 @@ public class JavaProjectEntity {
         return classEntities;
     }
 
+    private List<NameExpr> findAllMethods(List<ClassEntity> classEntities){
+        Iterator<ClassEntity> iterator = classEntities.iterator();
+        List<NameExpr> result = new ArrayList<>();
+        while(iterator.hasNext()){
+                List<MethodEntity> methodEntities = iterator.next().getFunctions();
+                for (int i = 0; i < methodEntities.size(); i++){
+                    result.add(methodEntities.get(i).getMethodDeclaration().getNameExpr());
+            }
+        }
+        return result;
+    }
+
     public ClassEntity getMainClass() throws TooManyMainMethodsException {
         Iterator<ClassEntity> classEntityIterator = classEntities.iterator();
         ClassEntity result = null;
@@ -85,6 +99,10 @@ public class JavaProjectEntity {
         while (classEntityIterator.hasNext()){
             System.out.println(classEntityIterator.next().getPath());
         }
+    }
+
+    public List<NameExpr> getMethodEntities() {
+        return methodEntities;
     }
 
     @Override

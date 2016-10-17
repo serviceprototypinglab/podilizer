@@ -1,6 +1,5 @@
 package ch.zhaw.file_operations;
 
-import com.sun.xml.internal.ws.org.objectweb.asm.FieldVisitor;
 import japa.parser.JavaParser;
 import japa.parser.ParseException;
 import japa.parser.ast.CompilationUnit;
@@ -16,14 +15,13 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-/**
- * Created by dord on 9/27/16.
- */
-public class ClassEntity {
+
+public class ClassEntity {;
     private Path path;
     private List<MethodEntity> functions;
     private List<FieldDeclaration> fields;
     private CompilationUnit cu;
+
 
     //transforms List<MethodDeclaration> into list<MethodEntity>
     private List<MethodEntity> listMethodEntityTransformer(List<MethodDeclaration> inputList){
@@ -86,7 +84,6 @@ public class ClassEntity {
             return fieldDeclarationList;
         }
     }
-
 
     public Path getPath() {
         return path;

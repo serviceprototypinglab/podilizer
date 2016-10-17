@@ -1,6 +1,5 @@
 package ch.zhaw.file_operations;
 
-import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
@@ -8,13 +7,12 @@ import japa.parser.ast.visitor.VoidVisitorAdapter;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Created by dord on 9/28/16.
- */
 public class MethodEntity {
     private MethodDeclaration methodDeclaration;
     private List<MethodCallExpr> methodCallExprs;
     private ClassEntity classEntity;
+
+
 
     public List<MethodCallExpr> getMethodCallExprs() {
         return methodCallExprs;
@@ -25,6 +23,7 @@ public class MethodEntity {
         MethodCallsVisitor methodCallsVisitor = new MethodCallsVisitor();
         methodCallsVisitor.visit(classEntity.getCu(), null);
         methodCallExprs = methodCallsVisitor.getMethodCallExprs();
+
     }
 
     public MethodDeclaration getMethodDeclaration() {
@@ -47,4 +46,5 @@ public class MethodEntity {
             return methodCallExprs;
         }
     }
+
 }

@@ -1,28 +1,26 @@
 package ch.zhaw.file_operations;
 
 import ch.zhaw.exceptions.TooManyMainMethodsException;
-import japa.parser.ast.expr.MethodCallExpr;
 
 import java.nio.file.*;
-
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
-import static java.nio.file.StandardCopyOption.*;
+import java.util.ArrayList;
+import java.util.Objects;
 
 public class Visitor {
-    //public static ArrayList<Path> paths = new ArrayList<Path>();
     public static void main(String[] args) throws Exception{
-        JavaProjectEntity javaProjectEntity = new JavaProjectEntity(Paths.get("/home/dord/IdeaProjects/service_tooling_initiative"));
+        JavaProjectEntity javaProjectEntity = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath()));
+
+        JarUploader jarUploader = new JarUploader(ConfigReader.getConfig().getFileName(), "/home/dord/LambdaA.zip", "example.LambdaA::handleRequest", 30, 1024);
+        jarUploader.uploadFunction();
+
         try{
-            System.out.println(javaProjectEntity.getMainClass().getMainMethod());
-            javaProjectEntity.getMainClass().getMainMethod();
-            System.out.println("================================================================================================");
-            System.out.println(javaProjectEntity.getMainClass().getMainMethod().getMethodCallExprs());
-            //MethodCallExpr methodCallExpr = javaProjectEntity.getMainClass().getMainMethod().getMethodCallExprs().get(0);
+            System.out.println(javaProjectEntity.getMainClass());
+
+            /* Build jar
 
             JarBuilder jarBuilder = new JarBuilder();
             jarBuilder.createJar("/home/dord/Templates/emptyTestDirectory/");
-
-
+            */
 
         }catch (TooManyMainMethodsException e){
             System.err.print("There is more then one main method, please define a path to the single project");
@@ -30,5 +28,5 @@ public class Visitor {
         }
 
     }
+
 }
-;

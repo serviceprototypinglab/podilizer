@@ -10,5 +10,6 @@
     <orderEntry type="library" exported="" name="javaparser-1.0.11" level="project" />
     <orderEntry type="library" name="maven-invoker-2.1.1" level="project" />
     <orderEntry type="library" name="plexus-utils-2.0.5" level="project" />
+    <orderEntry type="library" name="jyaml-1.3" level="project" />
   </component>
 </module>
