@@ -1,4 +1,5 @@
 path: /home/dord/IdeaProjects/service_tooling_initiative
+newPath: /home/dord/IdeaProjects/testNewProject
 fileName: functionName
 region: us-west-2
 role: arn:aws:iam::520974061566:role/lambda_basic_execution

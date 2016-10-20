@@ -17,6 +17,11 @@ public class MethodEntity {
     public List<MethodCallExpr> getMethodCallExprs() {
         return methodCallExprs;
     }
+
+    public ClassEntity getClassEntity() {
+        return classEntity;
+    }
+
     public MethodEntity(MethodDeclaration methodDeclaration, ClassEntity classEntity) {
         this.methodDeclaration = methodDeclaration;
         this.classEntity = classEntity;

@@ -2,6 +2,7 @@ package ch.zhaw.file_operations;
 
 public class YmlEntity {
     private String path;
+    private String newPath;
     private String fileName;
     private String region;
     private String role;
@@ -9,6 +10,10 @@ public class YmlEntity {
 
     public String getPath() {
         return path;
+    }
+
+    public String getNewPath() {
+        return newPath;
     }
 
     public String getFileName() {
@@ -29,6 +34,10 @@ public class YmlEntity {
 
     public void setPath(String path) {
         this.path = path;
+    }
+
+    public void setNewPath(String newPath) {
+        this.newPath = newPath;
     }
 
     public void setFileName(String fileName) {

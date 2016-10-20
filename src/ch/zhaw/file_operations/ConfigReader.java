@@ -10,7 +10,7 @@ public  class ConfigReader {
     public static YmlEntity getConfig() {
         YmlEntity config = null;
         try {
-            config = Yaml.loadType(new File("/home/dord/IdeaProjects/service_tooling_initiative/jyaml.yml"), YmlEntity.class);
+            config = Yaml.loadType(new File("jyaml.yml"), YmlEntity.class);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
