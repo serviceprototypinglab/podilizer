@@ -11,6 +11,7 @@ import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 import org.codehaus.plexus.util.FileUtils;
+import sun.org.mozilla.javascript.internal.ast.VariableDeclaration;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -75,7 +76,12 @@ public class NewProjectCreator {
         ClassOrInterfaceDeclaration classDeclaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, cu.getTypes().get(0).getName() + "AWSF" +
                         methodEntity.getMethodDeclaration().getName());
-        List implementsList = new ArrayList();
+        List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
+        for (FieldDeclaration field :
+                fields) {
+             ASTHelper.addMember(classDeclaration, field);
+        }
+                List implementsList = new ArrayList();
         implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
         classDeclaration.setImplements(implementsList);
         ASTHelper.addTypeDeclaration(newCU, classDeclaration);
@@ -83,11 +89,23 @@ public class NewProjectCreator {
                 new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("InputType"), "handleRequest");
         ASTHelper.addMember(classDeclaration, method);
 
+
         Parameter param1 = ASTHelper.createParameter(new ClassOrInterfaceType("InputType"), "inputType");
         Parameter param2 = ASTHelper.createParameter(new ClassOrInterfaceType("Context"), "context");
         ASTHelper.addParameter(method, param1);
         ASTHelper.addParameter(method, param2);
-        method.setBody(methodEntity.getMethodDeclaration().getBody());
+        BlockStmt bodyBlock = new BlockStmt();
+        List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
+        for (Parameter parameter :
+                parameters) {
+            NameExpr localVar = new NameExpr(parameter.getType().toString() + " " + parameter.getId().getName());
+            MethodCallExpr methodCallExpr =
+                    new MethodCallExpr(new NameExpr("InputType"), "get" +
+                            firstLetterToUpperCase(parameter.getId().getName()));
+            AssignExpr assignExpr = new AssignExpr(localVar, methodCallExpr, AssignExpr.Operator.assign);
+            ASTHelper.addStmt(bodyBlock, assignExpr);
+        }
+        method.setBody(bodyBlock);
         return newCU;
     }
     private CompilationUnit createInPutType(MethodEntity methodEntity){
@@ -115,6 +133,9 @@ public class NewProjectCreator {
         return inputCu;
 
     }
+
+    // TODO: 10/22/16  Create OutputType class creator
+
     private CompilationUnit createGetSet(CompilationUnit compilationUnit){
         FieldsVisitor fieldsVisitor = new FieldsVisitor();
         fieldsVisitor.visit(compilationUnit, null);
@@ -130,7 +151,8 @@ public class NewProjectCreator {
                 Parameter constrParam = new Parameter(field.getType(), var.getId());
                 constrParameters.add(constrParam);
                 FieldAccessExpr fieldAccessExpr = new FieldAccessExpr(new ThisExpr(), var.getId().getName());
-                AssignExpr assignExprConstr = new AssignExpr(fieldAccessExpr, new NameExpr(var.getId().getName()), AssignExpr.Operator.assign);
+                AssignExpr assignExprConstr =
+                        new AssignExpr(fieldAccessExpr, new NameExpr(var.getId().getName()), AssignExpr.Operator.assign);
                 ASTHelper.addStmt(constrBlock, assignExprConstr);
 
                 MethodDeclaration setter =
