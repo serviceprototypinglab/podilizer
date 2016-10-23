@@ -11,7 +11,6 @@ import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 import org.codehaus.plexus.util.FileUtils;
-import sun.org.mozilla.javascript.internal.ast.VariableDeclaration;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -118,8 +117,12 @@ public class NewProjectCreator {
         ASTHelper.addTypeDeclaration(inputCu, declaration);
         for (FieldDeclaration field:
              fields) {
-            field.setModifiers(ModifierSet.PUBLIC);
-            ASTHelper.addMember(declaration, field);
+            boolean isStaticNonFinal =
+                    field.getModifiers() == ModifierSet.STATIC && field.getModifiers() != ModifierSet.FINAL;
+            if (isStaticNonFinal){
+                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
+                ASTHelper.addMember(declaration, tmp);
+            }
         }
         for (Parameter param :
                 parameters) {
@@ -133,8 +136,31 @@ public class NewProjectCreator {
         return inputCu;
 
     }
+    private  CompilationUnit createOutPutType(MethodEntity methodEntity){
+        CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
+        CompilationUnit outputCu = new CompilationUnit();
+        ClassOrInterfaceDeclaration declaration =
+                new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "OutputType");
+        ASTHelper.addTypeDeclaration(outputCu, declaration);
+        List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
+        for (FieldDeclaration field:
+                fields) {
+            boolean isStaticNonFinal =
+                    field.getModifiers() == ModifierSet.STATIC && field.getModifiers() != ModifierSet.FINAL;
+            if (isStaticNonFinal){
+                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
+                ASTHelper.addMember(declaration, tmp);
+            }
+        }
+        Type returnType = methodEntity.getMethodDeclaration().getType();
+        if (returnType != ASTHelper.VOID_TYPE){
+            FieldDeclaration fieldDeclaration =
+                    new FieldDeclaration(ModifierSet.PUBLIC, returnType, new VariableDeclarator(
+                            new VariableDeclaratorId(methodEntity.getMethodDeclaration().getName() + "Result")));
+        }
+        return outputCu;
 
-    // TODO: 10/22/16  Create OutputType class creator
+    }
 
     private CompilationUnit createGetSet(CompilationUnit compilationUnit){
         FieldsVisitor fieldsVisitor = new FieldsVisitor();
@@ -200,32 +226,11 @@ public class NewProjectCreator {
             fieldDeclarationList.add(n);
             super.visit(n, arg);
         }
-
         public List<FieldDeclaration> getFieldDeclarationList() {
             return fieldDeclarationList;
         }
     }
-    private  CompilationUnit createOutPutType(MethodEntity methodEntity){
-        CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
-        CompilationUnit outputCu = new CompilationUnit();
-        ClassOrInterfaceDeclaration declaration =
-                new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "OutputType");
-        ASTHelper.addTypeDeclaration(outputCu, declaration);
-        List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
-        for (FieldDeclaration field:
-                fields) {
-            field.setModifiers(ModifierSet.PUBLIC);
-            ASTHelper.addMember(declaration, field);
-        }
-        Type returnType = methodEntity.getMethodDeclaration().getType();
-        if (returnType != ASTHelper.VOID_TYPE){
-            FieldDeclaration fieldDeclaration =
-                    new FieldDeclaration(ModifierSet.PUBLIC, returnType, new VariableDeclarator(
-                            new VariableDeclaratorId(methodEntity.getMethodDeclaration().getName() + "Result")));
-        }
-        return outputCu;
 
-    }
     private List<ImportDeclaration> createImports(MethodEntity methodEntity){
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
         ImportDeclaration imd1 = new ImportDeclaration();
