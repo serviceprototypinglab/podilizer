@@ -7,6 +7,7 @@ import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
@@ -66,6 +67,7 @@ public class NewProjectCreator {
     }
     private CompilationUnit createLambdaFunction(MethodEntity methodEntity){
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
+        List<FieldDeclaration> staticFields = new ArrayList<>();
         String name = cu.getPackage().getName() + "." + cu.getTypes().get(0).getName() + "." +
                 methodEntity.getMethodDeclaration().getName() +
                 methodEntity.getMethodDeclaration().getParameters().size();
@@ -78,14 +80,20 @@ public class NewProjectCreator {
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
         for (FieldDeclaration field :
                 fields) {
-             ASTHelper.addMember(classDeclaration, field);
+            boolean isStaticNonFinal =
+                    field.getModifiers() == ModifierSet.STATIC && field.getModifiers() != ModifierSet.FINAL;
+            if (isStaticNonFinal){
+                staticFields.add(field);
+                ASTHelper.addMember(classDeclaration, field);
+            }
+
         }
                 List implementsList = new ArrayList();
         implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
         classDeclaration.setImplements(implementsList);
         ASTHelper.addTypeDeclaration(newCU, classDeclaration);
         MethodDeclaration method =
-                new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("InputType"), "handleRequest");
+                new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("OutputType"), "handleRequest");
         ASTHelper.addMember(classDeclaration, method);
 
 
@@ -99,14 +107,72 @@ public class NewProjectCreator {
                 parameters) {
             NameExpr localVar = new NameExpr(parameter.getType().toString() + " " + parameter.getId().getName());
             MethodCallExpr methodCallExpr =
-                    new MethodCallExpr(new NameExpr("InputType"), "get" +
+                    new MethodCallExpr(new NameExpr("inputType"), "get" +
                             firstLetterToUpperCase(parameter.getId().getName()));
             AssignExpr assignExpr = new AssignExpr(localVar, methodCallExpr, AssignExpr.Operator.assign);
             ASTHelper.addStmt(bodyBlock, assignExpr);
         }
         method.setBody(bodyBlock);
+        if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
+            ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity, staticFields));
+        }
         return newCU;
     }
+    private BlockStmt returnReplace(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
+        BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
+        List<Statement> statements = bodyBlock.getStmts();
+        for (Statement statment :
+                statements) {
+            if (statment.toString().contains("return")){
+                Expression outputTypeExpr = new NameExpr("OutputType outputType");
+                List<Expression> arguments = new ArrayList<>();
+                for (FieldDeclaration field:
+                        staticFields) {
+                    for (VariableDeclarator var :
+                            field.getVariables()) {
+                        arguments.add(new NameExpr(var.getId().getName()));
+                    }
+                }
+                ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
+
+                ObjectCreationExpr objectCreationExpr =
+                        new ObjectCreationExpr(null, type, arguments);
+                AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
+                NameExpr returnExpr = new NameExpr("return outputType");
+                BlockStmt returnBlock = new BlockStmt();
+                ASTHelper.addStmt(returnBlock, assign);
+                ASTHelper.addStmt(returnBlock, returnExpr);
+                statment = returnBlock;
+                return bodyBlock;
+            }
+        }
+
+
+
+        return bodyBlock;
+    }
+    private BlockStmt addReturnCode(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
+        BlockStmt bodyBlock = new BlockStmt();
+        Expression outputTypeExpr = new NameExpr("OutputType outputType");
+        List<Expression> arguments = new ArrayList<>();
+        for (FieldDeclaration field:
+                staticFields) {
+            for (VariableDeclarator var :
+                    field.getVariables()) {
+                arguments.add(new NameExpr(var.getId().getName()));
+            }
+        }
+        ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
+
+        ObjectCreationExpr objectCreationExpr =
+                new ObjectCreationExpr(null, type, arguments);
+        AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
+        NameExpr returnExpr = new NameExpr("return outputType");
+        ASTHelper.addStmt(bodyBlock, assign);
+        ASTHelper.addStmt(bodyBlock, returnExpr);
+        return bodyBlock;
+    }
+
     private CompilationUnit createInPutType(MethodEntity methodEntity){
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
@@ -136,6 +202,7 @@ public class NewProjectCreator {
         return inputCu;
 
     }
+
     private  CompilationUnit createOutPutType(MethodEntity methodEntity){
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         CompilationUnit outputCu = new CompilationUnit();
@@ -153,7 +220,7 @@ public class NewProjectCreator {
             }
         }
         Type returnType = methodEntity.getMethodDeclaration().getType();
-        if (returnType != ASTHelper.VOID_TYPE){
+        if (!returnType.equals(ASTHelper.VOID_TYPE)){
             FieldDeclaration fieldDeclaration =
                     new FieldDeclaration(ModifierSet.PUBLIC, returnType, new VariableDeclarator(
                             new VariableDeclaratorId(methodEntity.getMethodDeclaration().getName() + "Result")));
