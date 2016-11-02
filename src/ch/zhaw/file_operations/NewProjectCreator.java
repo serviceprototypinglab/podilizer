@@ -12,6 +12,7 @@ import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 import org.codehaus.plexus.util.FileUtils;
+import sun.org.mozilla.javascript.internal.ast.VariableDeclaration;
 
 import java.io.*;
 import java.nio.file.Paths;
@@ -102,6 +103,20 @@ public class NewProjectCreator {
         ASTHelper.addParameter(method, param1);
         ASTHelper.addParameter(method, param2);
         BlockStmt bodyBlock = new BlockStmt();
+
+        for (FieldDeclaration staticField:
+                staticFields){
+            for (VariableDeclarator var:
+                    staticField.getVariables()) {
+                NameExpr staticFieldVar = new NameExpr(var.getId().getName());
+                MethodCallExpr methodCallExpr =
+                        new MethodCallExpr(new NameExpr("inputType"), "get" +
+                                firstLetterToUpperCase(var.getId().getName()));
+                AssignExpr assignExpr = new AssignExpr(staticFieldVar, methodCallExpr, AssignExpr.Operator.assign);
+                ASTHelper.addStmt(bodyBlock, assignExpr);
+
+            }
+        }
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
         for (Parameter parameter :
                 parameters) {
@@ -112,6 +127,8 @@ public class NewProjectCreator {
             AssignExpr assignExpr = new AssignExpr(localVar, methodCallExpr, AssignExpr.Operator.assign);
             ASTHelper.addStmt(bodyBlock, assignExpr);
         }
+
+
         method.setBody(bodyBlock);
         if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
             ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity, staticFields));
