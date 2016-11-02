@@ -1,6 +1,7 @@
 package ch.zhaw.file_operations;
 
 import ch.zhaw.exceptions.TooManyMainMethodsException;
+import japa.parser.ast.body.ModifierSet;
 import japa.parser.ast.expr.NameExpr;
 
 import java.io.IOException;
@@ -73,6 +74,20 @@ public class JavaProjectEntity {
                 for (int i = 0; i < methodEntities.size(); i++){
                     result.add(methodEntities.get(i).getMethodDeclaration().getNameExpr());
             }
+        }
+        return result;
+    }
+    public List<MethodEntity> getStaticMethods(){
+        List<MethodEntity> result = new ArrayList<>();
+        for (ClassEntity classEntity:
+                classEntities) {
+            for (MethodEntity method:
+                    classEntity.getFunctions()) {
+                if (ModifierSet.isStatic(method.getMethodDeclaration().getModifiers())){
+                    result.add(method);
+                }
+            }
+
         }
         return result;
     }

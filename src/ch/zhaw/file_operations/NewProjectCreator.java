@@ -32,6 +32,7 @@ public class NewProjectCreator {
     }
     void create() throws TooManyMainMethodsException {
         JavaProjectEntity javaProjectEntity = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getNewPath()));
+        JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath()));
 
         /*
         JarUploader jarUploader = new JarUploader(ConfigReader.getConfig().getFileName(), "/home/dord/LambdaA.zip", "example.LambdaA::handleRequest", 30, 1024);
@@ -44,11 +45,15 @@ public class NewProjectCreator {
                 writer = new PrintWriter(javaProjectEntity.getMainClass().getPath().toString(), "UTF-8");
                 System.out.println(createLambdaFunction(javaProjectEntity.getMainClass().getMainMethod()));
                 writer.print(createLambdaFunction(javaProjectEntity.getMainClass().getMainMethod()));
+//                System.out.println("-------------------------------------------------------------");
+//                System.out.println(createGetSet(createInPutType(javaProjectEntity.getMainClass().getMainMethod())));
+//                System.out.println("-------------------------------------------------------------");
+//                System.out.println(createGetSet(createOutPutType(javaProjectEntity.getMainClass().getMainMethod())));
                 System.out.println("-------------------------------------------------------------");
-                System.out.println(createGetSet(createInPutType(javaProjectEntity.getMainClass().getMainMethod())));
-                System.out.println("-------------------------------------------------------------");
-                System.out.println(createGetSet(createOutPutType(javaProjectEntity.getMainClass().getMainMethod())));
-                System.out.println("-------------------------------------------------------------");
+                System.out.println(javaProjectEntityOld.getStaticMethods());
+                System.out.println(createLambdaFunction(javaProjectEntityOld.getStaticMethods().get(0)));
+                System.out.println(createGetSet(createOutPutType(javaProjectEntityOld.getStaticMethods().get(0))));
+
             } catch (IOException e) {
                 e.printStackTrace();
             }finally {
@@ -69,9 +74,6 @@ public class NewProjectCreator {
     private CompilationUnit createLambdaFunction(MethodEntity methodEntity){
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         List<FieldDeclaration> staticFields = new ArrayList<>();
-        String name = cu.getPackage().getName() + "." + cu.getTypes().get(0).getName() + "." +
-                methodEntity.getMethodDeclaration().getName() +
-                methodEntity.getMethodDeclaration().getParameters().size();
         CompilationUnit newCU = new CompilationUnit();
         newCU.setImports(createImports(methodEntity));
 
@@ -118,20 +120,22 @@ public class NewProjectCreator {
             }
         }
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
-        for (Parameter parameter :
-                parameters) {
-            NameExpr localVar = new NameExpr(parameter.getType().toString() + " " + parameter.getId().getName());
-            MethodCallExpr methodCallExpr =
-                    new MethodCallExpr(new NameExpr("inputType"), "get" +
-                            firstLetterToUpperCase(parameter.getId().getName()));
-            AssignExpr assignExpr = new AssignExpr(localVar, methodCallExpr, AssignExpr.Operator.assign);
-            ASTHelper.addStmt(bodyBlock, assignExpr);
+        if (parameters != null){
+            for (Parameter parameter :
+                    parameters) {
+                NameExpr localVar = new NameExpr(parameter.getType().toString() + " " + parameter.getId().getName());
+                MethodCallExpr methodCallExpr =
+                        new MethodCallExpr(new NameExpr("inputType"), "get" +
+                                firstLetterToUpperCase(parameter.getId().getName()));
+                AssignExpr assignExpr = new AssignExpr(localVar, methodCallExpr, AssignExpr.Operator.assign);
+                ASTHelper.addStmt(bodyBlock, assignExpr);
+            }
         }
-
-
         method.setBody(bodyBlock);
         if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
             ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity, staticFields));
+        }else {
+            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity, staticFields));
         }
         return newCU;
     }
@@ -141,6 +145,8 @@ public class NewProjectCreator {
         for (Statement statment :
                 statements) {
             if (statment.toString().contains("return")){
+                String returnVar = statment.toString().substring(7, (statment.toString().length() - 1));
+                System.out.println(returnVar);
                 Expression outputTypeExpr = new NameExpr("OutputType outputType");
                 List<Expression> arguments = new ArrayList<>();
                 for (FieldDeclaration field:
@@ -150,6 +156,7 @@ public class NewProjectCreator {
                         arguments.add(new NameExpr(var.getId().getName()));
                     }
                 }
+                arguments.add(new NameExpr(returnVar));
                 ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
 
                 ObjectCreationExpr objectCreationExpr =
@@ -159,13 +166,13 @@ public class NewProjectCreator {
                 BlockStmt returnBlock = new BlockStmt();
                 ASTHelper.addStmt(returnBlock, assign);
                 ASTHelper.addStmt(returnBlock, returnExpr);
-                statment = returnBlock;
+                //statment = returnBlock;
+                statements.add(statements.indexOf(statment), returnBlock);
+                statements.remove(statment);
+
                 return bodyBlock;
             }
         }
-
-
-
         return bodyBlock;
     }
     private BlockStmt addReturnCode(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
@@ -241,6 +248,7 @@ public class NewProjectCreator {
             FieldDeclaration fieldDeclaration =
                     new FieldDeclaration(ModifierSet.PUBLIC, returnType, new VariableDeclarator(
                             new VariableDeclaratorId(methodEntity.getMethodDeclaration().getName() + "Result")));
+            ASTHelper.addMember(declaration, fieldDeclaration);
         }
         return outputCu;
 

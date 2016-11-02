@@ -99,7 +99,7 @@ public class ClassEntity {;
         Iterator<MethodEntity> methodEntityIterator = functions.iterator();
         while (methodEntityIterator.hasNext()){
             MethodEntity function = methodEntityIterator.next();
-            if (function.getMethodDeclaration().getName() != null && function.getMethodDeclaration().getName() .equals("main")){
+            if (function.getMethodDeclaration().getName() != null && function.getMethodDeclaration().getName().equals("main")){
                 result = function;
             }
         }
