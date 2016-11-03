@@ -7,6 +7,8 @@ public class YmlEntity {
     private String region;
     private String role;
     private String mavenHome;
+    private String awsAccessKeyId;
+    private String awsSecretAccessKey;
 
     public String getPath() {
         return path;
@@ -32,6 +34,14 @@ public class YmlEntity {
         return mavenHome;
     }
 
+    public String getAwsAccessKeyId() {
+        return awsAccessKeyId;
+    }
+
+    public String getAwsSecretAccessKey() {
+        return awsSecretAccessKey;
+    }
+
     public void setPath(String path) {
         this.path = path;
     }
@@ -54,5 +64,13 @@ public class YmlEntity {
 
     public void setMavenHome(String mavenHome) {
         this.mavenHome = mavenHome;
+    }
+
+    public void setAwsAccessKeyId(String awsAccessKeyId) {
+        this.awsAccessKeyId = awsAccessKeyId;
+    }
+
+    public void setAwsSecretAccessKey(String awsSecretAccessKey) {
+        this.awsSecretAccessKey = awsSecretAccessKey;
     }
 }

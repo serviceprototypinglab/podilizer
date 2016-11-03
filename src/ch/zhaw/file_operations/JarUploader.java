@@ -21,7 +21,7 @@ class JarUploader {
         this.timeout = timeout;
         this.memorySize = memorySize;
     }
-    void writeIntoCMD(String command){
+    private void writeIntoCMD(String command){
         Runtime runtime = Runtime.getRuntime();
         try {
             final Process process = runtime.exec(command);
@@ -44,7 +44,7 @@ class JarUploader {
             e.printStackTrace();
         }
     }
-    String getCommand(){
+    private String getCommand(){
         String result = "";
         result = "aws lambda create-function" +
                 " --function-name " + functionName +

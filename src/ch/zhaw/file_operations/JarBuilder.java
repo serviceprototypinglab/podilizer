@@ -42,7 +42,7 @@ public class JarBuilder {
     public void setProjectToBuildLocation(Path projectToBuildLocation) {
         this.projectToBuildLocation = projectToBuildLocation;
     }
-    private void creatDir(String path){
+    void creatDir(String path){
         File dir = new File(path);
         if (!dir.exists()){
             dir.mkdir();
@@ -50,15 +50,15 @@ public class JarBuilder {
             System.err.println("Failed to create a directory");
         }
     }
-    private void createProjTree(String path) throws IOException {
+    String createProjTree(String path) throws IOException {
         creatDir(path);
-        Files.copy(Paths.get("additional/pom.xml"), Paths.get(path + "pom.xml"), REPLACE_EXISTING);
+        Files.copy(Paths.get("additional/pom.xml"), Paths.get(path + "/pom.xml"), REPLACE_EXISTING);
         creatDir(path + "/src");
         creatDir(path + "/src/main");
         creatDir(path + "/src/main/java");
-
+        return path + "/src/main/java";
     }
-    private void mvnBuild(String path) throws MavenInvocationException, URISyntaxException {
+    void mvnBuild(String path) throws MavenInvocationException, URISyntaxException {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File(path + "pom.xml"));
         request.setGoals( Arrays.asList( "clean", "install" ) );

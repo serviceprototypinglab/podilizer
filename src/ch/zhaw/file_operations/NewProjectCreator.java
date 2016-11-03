@@ -1,7 +1,11 @@
 package ch.zhaw.file_operations;
 
 import ch.zhaw.exceptions.TooManyMainMethodsException;
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import japa.parser.ASTHelper;
+import japa.parser.JavaParser;
+import japa.parser.SourcesHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.body.*;
@@ -11,10 +15,12 @@ import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
+import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.codehaus.plexus.util.FileUtils;
 import sun.org.mozilla.javascript.internal.ast.VariableDeclaration;
 
 import java.io.*;
+import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.LinkedList;
@@ -31,7 +37,6 @@ public class NewProjectCreator {
         FileUtils.copyDirectoryStructure(new File(ConfigReader.getConfig().getPath()), new File(newPath));
     }
     void create() throws TooManyMainMethodsException {
-        JavaProjectEntity javaProjectEntity = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getNewPath()));
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath()));
 
         /*
@@ -40,35 +45,48 @@ public class NewProjectCreator {
         */
 
         try{
-            PrintWriter writer = null;
-            try {
-                writer = new PrintWriter(javaProjectEntity.getMainClass().getPath().toString(), "UTF-8");
-                System.out.println(createLambdaFunction(javaProjectEntity.getMainClass().getMainMethod()));
-                writer.print(createLambdaFunction(javaProjectEntity.getMainClass().getMainMethod()));
-//                System.out.println("-------------------------------------------------------------");
-//                System.out.println(createGetSet(createInPutType(javaProjectEntity.getMainClass().getMainMethod())));
-//                System.out.println("-------------------------------------------------------------");
-//                System.out.println(createGetSet(createOutPutType(javaProjectEntity.getMainClass().getMainMethod())));
-                System.out.println("-------------------------------------------------------------");
-                System.out.println(javaProjectEntityOld.getStaticMethods());
-                System.out.println(createLambdaFunction(javaProjectEntityOld.getStaticMethods().get(0)));
-                System.out.println(createGetSet(createOutPutType(javaProjectEntityOld.getStaticMethods().get(0))));
-
-            } catch (IOException e) {
-                e.printStackTrace();
-            }finally {
-                writer.close();
-            }
-
-            /* Build jar
-
             JarBuilder jarBuilder = new JarBuilder();
-            jarBuilder.createJar("/home/dord/Templates/emptyTestDirectory/");
-            */
 
-        }catch (TooManyMainMethodsException e){
-            System.err.print("There is more then one main method, please define a path to the single project");
-            System.exit(-1);
+            jarBuilder.creatDir("LambdaProjects");
+            String classesPath = jarBuilder.createProjTree("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase");
+
+            writeToFile(classesPath + "/NewProjectCreatorAWSFfirstLetterToUpperCase.java",
+                    createLambdaFunction(javaProjectEntityOld.getStaticMethods().get(2)));
+            writeToFile(classesPath + "/OutputType.java",
+                    createGetSet(createOutPutType(javaProjectEntityOld.getStaticMethods().get(2))));
+            writeToFile(classesPath + "/InputType.java",
+                    createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2))));
+            //creating a JSON of input object
+            InputType inputData = new InputType("hello");
+            CompilationUnit cu = createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2)));
+
+            ObjectMapper objectMapper = new ObjectMapper();
+            String json = "";
+            try {
+                json = objectMapper.writeValueAsString(inputData);
+            } catch (JsonProcessingException e) {
+                e.printStackTrace();
+            }
+            System.out.println(json);
+
+            jarBuilder.mvnBuild("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase/");
+
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        } catch (MavenInvocationException e) {
+            e.printStackTrace();
+        } catch (URISyntaxException e) {
+            e.printStackTrace();
+        }
+    }
+    private void writeToFile(String path, CompilationUnit cu){
+        try {
+            PrintWriter writer = new PrintWriter(path, "UTF-8");
+            writer.print(cu);
+            writer.close();
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
     private CompilationUnit createLambdaFunction(MethodEntity methodEntity){
@@ -146,7 +164,6 @@ public class NewProjectCreator {
                 statements) {
             if (statment.toString().contains("return")){
                 String returnVar = statment.toString().substring(7, (statment.toString().length() - 1));
-                System.out.println(returnVar);
                 Expression outputTypeExpr = new NameExpr("OutputType outputType");
                 List<Expression> arguments = new ArrayList<>();
                 for (FieldDeclaration field:
@@ -196,7 +213,6 @@ public class NewProjectCreator {
         ASTHelper.addStmt(bodyBlock, returnExpr);
         return bodyBlock;
     }
-
     private CompilationUnit createInPutType(MethodEntity methodEntity){
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
@@ -226,8 +242,7 @@ public class NewProjectCreator {
         return inputCu;
 
     }
-
-    private  CompilationUnit createOutPutType(MethodEntity methodEntity){
+    private CompilationUnit createOutPutType(MethodEntity methodEntity){
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         CompilationUnit outputCu = new CompilationUnit();
         ClassOrInterfaceDeclaration declaration =
@@ -253,15 +268,17 @@ public class NewProjectCreator {
         return outputCu;
 
     }
-
     private CompilationUnit createGetSet(CompilationUnit compilationUnit){
         FieldsVisitor fieldsVisitor = new FieldsVisitor();
         fieldsVisitor.visit(compilationUnit, null);
         List<FieldDeclaration> fieldDeclarationList = fieldsVisitor.getFieldDeclarationList();
         ConstructorDeclaration constructor = new ConstructorDeclaration(ModifierSet.PUBLIC, compilationUnit.getTypes().get(0).getName());
+        ConstructorDeclaration emptyConstructor = new ConstructorDeclaration(ModifierSet.PUBLIC, compilationUnit.getTypes().get(0).getName());
         List<Parameter> constrParameters = new LinkedList<>();
         BlockStmt constrBlock = new BlockStmt();
+        BlockStmt emptyConstrBlock = new BlockStmt();
         constructor.setBlock(constrBlock);
+        emptyConstructor.setBlock(emptyConstrBlock);
         for (FieldDeclaration field :
                 fieldDeclarationList) {
             for (VariableDeclarator var:
@@ -300,11 +317,12 @@ public class NewProjectCreator {
         }
         constructor.setParameters(constrParameters);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
+        ASTHelper.addMember(compilationUnit.getTypes().get(0), emptyConstructor);
 
 
         return  compilationUnit;
     }
-    private String firstLetterToUpperCase(String string){
+    private static String firstLetterToUpperCase(String string){
         String first = string.substring(0, 1);
         String second = string.substring(1, string.length());
         first = first.toUpperCase();
