@@ -28,6 +28,8 @@ import java.util.List;
 
 public class NewProjectCreator {
     private String newPath;
+    protected static String someTestString;
+    private static JarBuilder jb;
 
     public NewProjectCreator(){
         newPath = ConfigReader.getConfig().getNewPath();
@@ -56,6 +58,8 @@ public class NewProjectCreator {
                     createGetSet(createOutPutType(javaProjectEntityOld.getStaticMethods().get(2))));
             writeToFile(classesPath + "/InputType.java",
                     createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2))));
+            //System.out.println(createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2))));
+            //System.out.println(createGetSet(createInPutType(javaProjectEntityOld.getMainClass().getMainMethod())));
             //creating a JSON of input object
             InputType inputData = new InputType("hello");
             CompilationUnit cu = createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2)));
@@ -109,6 +113,7 @@ public class NewProjectCreator {
             }
 
         }
+
                 List implementsList = new ArrayList();
         implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
         classDeclaration.setImplements(implementsList);
@@ -224,7 +229,8 @@ public class NewProjectCreator {
         for (FieldDeclaration field:
              fields) {
             boolean isStaticNonFinal =
-                    field.getModifiers() == ModifierSet.STATIC && field.getModifiers() != ModifierSet.FINAL;
+                    ModifierSet.isStatic(field.getModifiers()) & !ModifierSet.isFinal(field.getModifiers());
+            //System.out.println("The fields " + field.getType() + " " + field.getVariables() + " modifier bool value is " + isStaticNonFinal);
             if (isStaticNonFinal){
                 FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
                 ASTHelper.addMember(declaration, tmp);
@@ -252,7 +258,7 @@ public class NewProjectCreator {
         for (FieldDeclaration field:
                 fields) {
             boolean isStaticNonFinal =
-                    field.getModifiers() == ModifierSet.STATIC && field.getModifiers() != ModifierSet.FINAL;
+                    ModifierSet.isStatic(field.getModifiers()) & !ModifierSet.isFinal(field.getModifiers());
             if (isStaticNonFinal){
                 FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
                 ASTHelper.addMember(declaration, tmp);
