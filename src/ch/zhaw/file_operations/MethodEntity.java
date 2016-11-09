@@ -26,7 +26,7 @@ public class MethodEntity {
         this.methodDeclaration = methodDeclaration;
         this.classEntity = classEntity;
         MethodCallsVisitor methodCallsVisitor = new MethodCallsVisitor();
-        methodCallsVisitor.visit(classEntity.getCu(), null);
+        methodCallsVisitor.visit(methodDeclaration, null);
         methodCallExprs = methodCallsVisitor.getMethodCallExprs();
 
     }

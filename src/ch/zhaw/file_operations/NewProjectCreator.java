@@ -17,7 +17,6 @@ import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.codehaus.plexus.util.FileUtils;
-import sun.org.mozilla.javascript.internal.ast.VariableDeclaration;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -28,8 +27,7 @@ import java.util.List;
 
 public class NewProjectCreator {
     private String newPath;
-    protected static String someTestString;
-    private static JarBuilder jb;
+    private static String testField;
 
     public NewProjectCreator(){
         newPath = ConfigReader.getConfig().getNewPath();
@@ -53,11 +51,11 @@ public class NewProjectCreator {
             String classesPath = jarBuilder.createProjTree("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase");
 
             writeToFile(classesPath + "/NewProjectCreatorAWSFfirstLetterToUpperCase.java",
-                    createLambdaFunction(javaProjectEntityOld.getStaticMethods().get(2)));
+                    createLambdaFunction(javaProjectEntityOld.getStaticMethods().get(3)));
             writeToFile(classesPath + "/OutputType.java",
-                    createGetSet(createOutPutType(javaProjectEntityOld.getStaticMethods().get(2))));
+                    createGetSet(createOutPutType(javaProjectEntityOld.getStaticMethods().get(3))));
             writeToFile(classesPath + "/InputType.java",
-                    createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2))));
+                    createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(3))));
             //System.out.println(createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2))));
             //System.out.println(createGetSet(createInPutType(javaProjectEntityOld.getMainClass().getMainMethod())));
             //creating a JSON of input object
@@ -71,18 +69,22 @@ public class NewProjectCreator {
             } catch (JsonProcessingException e) {
                 e.printStackTrace();
             }
-            System.out.println(json);
+            System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
+            InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator();
+            invokeMethodCreator.createMethodInvoker(javaProjectEntityOld.getStaticMethods().get(3));
+            System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
 
-            jarBuilder.mvnBuild("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase/");
+            //jarBuilder.mvnBuild("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase/");
 
 
         } catch (IOException e) {
             e.printStackTrace();
-        } catch (MavenInvocationException e) {
-            e.printStackTrace();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
         }
+//        catch (MavenInvocationException e) {
+//            e.printStackTrace();
+//        } catch (URISyntaxException e) {
+//            e.printStackTrace();
+//        }
     }
     private void writeToFile(String path, CompilationUnit cu){
         try {
@@ -97,7 +99,7 @@ public class NewProjectCreator {
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         List<FieldDeclaration> staticFields = new ArrayList<>();
         CompilationUnit newCU = new CompilationUnit();
-        newCU.setImports(createImports(methodEntity));
+        newCU.setImports(createImports());
 
         ClassOrInterfaceDeclaration classDeclaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, cu.getTypes().get(0).getName() + "AWSF" +
@@ -113,8 +115,7 @@ public class NewProjectCreator {
             }
 
         }
-
-                List implementsList = new ArrayList();
+        List implementsList = new ArrayList();
         implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
         classDeclaration.setImplements(implementsList);
         ASTHelper.addTypeDeclaration(newCU, classDeclaration);
@@ -243,7 +244,7 @@ public class NewProjectCreator {
             ASTHelper.addMember(declaration, fieldDeclaration);
 
         }
-        VariableDeclarationExpr var = new VariableDeclarationExpr();
+
 
         return inputCu;
 
@@ -328,7 +329,7 @@ public class NewProjectCreator {
 
         return  compilationUnit;
     }
-    private static String firstLetterToUpperCase(String string){
+    public static String firstLetterToUpperCase(String string){
         String first = string.substring(0, 1);
         String second = string.substring(1, string.length());
         first = first.toUpperCase();
@@ -347,7 +348,7 @@ public class NewProjectCreator {
         }
     }
 
-    private List<ImportDeclaration> createImports(MethodEntity methodEntity){
+    private List<ImportDeclaration> createImports(){
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
         ImportDeclaration imd1 = new ImportDeclaration();
         imd1.setName(new NameExpr("com.amazonaws.services.lambda.runtime.RequestHandler"));
