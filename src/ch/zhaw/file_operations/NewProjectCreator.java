@@ -73,6 +73,8 @@ public class NewProjectCreator {
             InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator();
             invokeMethodCreator.createMethodInvoker(javaProjectEntityOld.getStaticMethods().get(3));
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
+            System.out.println("=====================================================================================");
+            System.out.println(invokeMethodCreator.addBufferByteReaderMethod(javaProjectEntityOld.getStaticMethods().get(3).getClassEntity().getCu()));
 
             //jarBuilder.mvnBuild("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase/");
 
@@ -237,13 +239,15 @@ public class NewProjectCreator {
                 ASTHelper.addMember(declaration, tmp);
             }
         }
-        for (Parameter param :
-                parameters) {
-            FieldDeclaration fieldDeclaration =
-                    new FieldDeclaration(ModifierSet.PUBLIC, param.getType(), new VariableDeclarator(param.getId()));
-            ASTHelper.addMember(declaration, fieldDeclaration);
-
+        if (parameters != null){
+            for (Parameter param :
+                    parameters) {
+                FieldDeclaration fieldDeclaration =
+                        new FieldDeclaration(ModifierSet.PUBLIC, param.getType(), new VariableDeclarator(param.getId()));
+                ASTHelper.addMember(declaration, fieldDeclaration);
+            }
         }
+
 
 
         return inputCu;

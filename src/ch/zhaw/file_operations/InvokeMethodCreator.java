@@ -1,15 +1,15 @@
 package ch.zhaw.file_operations;
 
+import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
-import japa.parser.ast.body.FieldDeclaration;
-import japa.parser.ast.body.ModifierSet;
-import japa.parser.ast.body.Parameter;
-import japa.parser.ast.body.VariableDeclarator;
+import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.stmt.TypeDeclarationStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
+import japa.parser.ast.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -21,7 +21,7 @@ public class InvokeMethodCreator {
 
     public void createMethodInvoker(MethodEntity methodEntity) {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
-        compilationUnit.setImports(createImports(methodEntity));
+        compilationUnit.setImports(createImports(methodEntity.getClassEntity()));
         BlockStmt bodyBlock = new BlockStmt();
         NameExpr accessIDKeyVarExpr = new NameExpr("static final String awsAccessIdKey = \"" +
                 ConfigReader.getConfig().getAwsAccessKeyId() + "\"");
@@ -119,7 +119,7 @@ public class InvokeMethodCreator {
         }
     }
 
-    private List<ImportDeclaration> createImports(MethodEntity methodEntity) {
+    private List<ImportDeclaration> createImports(ClassEntity classEntity) {
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
         ImportDeclaration imd1 = new ImportDeclaration();
         imd1.setName(new NameExpr("com.amazonaws.auth.AWSCredentials"));
@@ -145,7 +145,7 @@ public class InvokeMethodCreator {
         imports.add(imd6);
         imports.add(imd7);
         imports.add(imd8);
-        List<ImportDeclaration> oldImports = methodEntity.getClassEntity().getCu().getImports();
+        List<ImportDeclaration> oldImports = classEntity.getCu().getImports();
         for (ImportDeclaration importD :
                 oldImports) {
             if (!imports.contains(importD)) {
@@ -164,5 +164,30 @@ public class InvokeMethodCreator {
             }
         }
         return staticFields;
+    }
+    public CompilationUnit addBufferByteReaderMethod(CompilationUnit compilationUnit){
+        ClassOrInterfaceType type = new ClassOrInterfaceType("String");
+        MethodDeclaration declaration =
+                new MethodDeclaration(ModifierSet.STATIC, type, "byteBufferToString");
+        declaration.setModifiers(ModifierSet.PUBLIC);
+        ClassOrInterfaceType param1Type = new ClassOrInterfaceType("ByteBuffer");
+        Parameter param1 = new Parameter(param1Type, new VariableDeclaratorId("buffer"));
+        ClassOrInterfaceType param2Type = new ClassOrInterfaceType("Charset");
+        Parameter param2 = new Parameter(param2Type, new VariableDeclaratorId("charset"));
+        ASTHelper.addParameter(declaration, param1);
+        ASTHelper.addParameter(declaration, param2);
+        BlockStmt methodBodyStmt = new BlockStmt();
+        NameExpr bodyString = new NameExpr("byte[] bytes;\n" +
+                "        if (buffer.hasArray()) {\n" +
+                "            bytes = buffer.array();\n" +
+                "        } else {\n" +
+                "            bytes = new byte[buffer.remaining()];\n" +
+                "            buffer.get(bytes);\n" +
+                "        }\n" +
+                "        return new String(bytes, charset);");
+        ASTHelper.addStmt(methodBodyStmt, bodyString);
+        declaration.setBody(methodBodyStmt);
+        ASTHelper.addMember(compilationUnit.getTypes().get(0), declaration);
+        return compilationUnit;
     }
 }
