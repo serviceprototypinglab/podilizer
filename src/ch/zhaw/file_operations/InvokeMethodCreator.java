@@ -1,15 +1,12 @@
 package ch.zhaw.file_operations;
 
-import com.fasterxml.jackson.annotation.JsonTypeInfo;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
-import japa.parser.ast.stmt.TypeDeclarationStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
-import japa.parser.ast.type.Type;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -168,8 +165,7 @@ public class InvokeMethodCreator {
     public CompilationUnit addBufferByteReaderMethod(CompilationUnit compilationUnit){
         ClassOrInterfaceType type = new ClassOrInterfaceType("String");
         MethodDeclaration declaration =
-                new MethodDeclaration(ModifierSet.STATIC, type, "byteBufferToString");
-        declaration.setModifiers(ModifierSet.PUBLIC);
+                new MethodDeclaration(ModifierSet.STATIC + ModifierSet.PUBLIC, type, "byteBufferToString");
         ClassOrInterfaceType param1Type = new ClassOrInterfaceType("ByteBuffer");
         Parameter param1 = new Parameter(param1Type, new VariableDeclaratorId("buffer"));
         ClassOrInterfaceType param2Type = new ClassOrInterfaceType("Charset");
@@ -184,7 +180,7 @@ public class InvokeMethodCreator {
                 "            bytes = new byte[buffer.remaining()];\n" +
                 "            buffer.get(bytes);\n" +
                 "        }\n" +
-                "        return new String(bytes, charset);");
+                "        return new String(bytes, charset)");
         ASTHelper.addStmt(methodBodyStmt, bodyString);
         declaration.setBody(methodBodyStmt);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), declaration);

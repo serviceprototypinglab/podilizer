@@ -27,17 +27,22 @@ import java.util.List;
 
 public class NewProjectCreator {
     private String newPath;
+    private String oldPath;
     private static String testField;
 
     public NewProjectCreator(){
         newPath = ConfigReader.getConfig().getNewPath();
+        oldPath = ConfigReader.getConfig().getPath();
     }
 
     void copyProject() throws IOException {
         FileUtils.copyDirectoryStructure(new File(ConfigReader.getConfig().getPath()), new File(newPath));
     }
     void create() throws TooManyMainMethodsException {
-        JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath()));
+        JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
+        JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
+        SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld);
+        classTreeCreator.create();
 
         /*
         JarUploader jarUploader = new JarUploader(ConfigReader.getConfig().getFileName(), "/home/dord/LambdaA.zip", "example.LambdaA::handleRequest", 30, 1024);
@@ -70,6 +75,8 @@ public class NewProjectCreator {
                 e.printStackTrace();
             }
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
+            System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getClassEntity().getPath());
+
             InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator();
             invokeMethodCreator.createMethodInvoker(javaProjectEntityOld.getStaticMethods().get(3));
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
@@ -167,7 +174,7 @@ public class NewProjectCreator {
     }
     private BlockStmt returnReplace(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
         BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
-        List<Statement> statements = bodyBlock.getStmts();
+        List<Statement> statements = new ArrayList<>(bodyBlock.getStmts());
         for (Statement statment :
                 statements) {
             if (statment.toString().contains("return")){
