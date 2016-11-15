@@ -11,11 +11,10 @@ import japa.parser.ast.type.ClassOrInterfaceType;
 import java.util.ArrayList;
 import java.util.List;
 
-import static ch.zhaw.file_operations.NewProjectCreator.firstLetterToUpperCase;
+import static ch.zhaw.file_operations.UtilityClass.firstLetterToUpperCase;
+import static ch.zhaw.file_operations.UtilityClass.getOnlyStaticFields;
 
 public class InvokeMethodCreator {
-
-
     public void createMethodInvoker(MethodEntity methodEntity) {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         compilationUnit.setImports(createImports(methodEntity.getClassEntity()));
@@ -58,7 +57,6 @@ public class InvokeMethodCreator {
                 arguments.add(new NameExpr(param.getId().getName()));
             }
         }
-
         ClassOrInterfaceType type = new ClassOrInterfaceType("InputType");
         ObjectCreationExpr objectCreationExpr =
                 new ObjectCreationExpr(null, type, arguments);
@@ -79,7 +77,6 @@ public class InvokeMethodCreator {
         NameExpr invoke = new NameExpr("OutputType outputType = byteBufferToString(\n" +
                 "                    lambdaClient.invoke(invokeRequest).getPayload(),\n" +
                 "                    Charset.forName(\"UTF-8\"),logger)");
-
         ASTHelper.addStmt(bodyBlock, accessIDKeyVarExpr);
         ASTHelper.addStmt(bodyBlock, accessSecretKeyVarExpr);
         ASTHelper.addStmt(bodyBlock, regionNameVarExpr);
@@ -115,7 +112,6 @@ public class InvokeMethodCreator {
             ASTHelper.addStmt(bodyBlock, returnExpr);
         }
     }
-
     private List<ImportDeclaration> createImports(ClassEntity classEntity) {
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
         ImportDeclaration imd1 = new ImportDeclaration();
@@ -150,17 +146,6 @@ public class InvokeMethodCreator {
             }
         }
         return imports;
-    }
-
-    public static List<FieldDeclaration> getOnlyStaticFields(List<FieldDeclaration> fields) {
-        List<FieldDeclaration> staticFields = new ArrayList<>();
-        for (FieldDeclaration field :
-                fields) {
-            if (ModifierSet.isStatic(field.getModifiers())) {
-                staticFields.add(field);
-            }
-        }
-        return staticFields;
     }
     public CompilationUnit addBufferByteReaderMethod(CompilationUnit compilationUnit){
         ClassOrInterfaceType type = new ClassOrInterfaceType("String");

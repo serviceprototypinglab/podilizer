@@ -5,6 +5,10 @@ import japa.parser.ast.body.MethodDeclaration;
 import java.io.File;
 import java.util.List;
 
+import static ch.zhaw.file_operations.UtilityClass.getInputClass;
+import static ch.zhaw.file_operations.UtilityClass.getOutputClass;
+import static ch.zhaw.file_operations.UtilityClass.writeToFile;
+
 public class SupportClassTreeCreator {
     JavaProjectEntity projectEntity;
 
@@ -30,13 +34,14 @@ public class SupportClassTreeCreator {
                     String className = classEntity.getCu().getTypes().get(0).getName();
                     String functionName = "" + methodDeclaration.getName();
                     if (methodDeclaration.getParameters() != null){
-                        functionName = methodDeclaration.getName() + methodDeclaration.getParameters().size();
+                        functionName = functionName + methodDeclaration.getParameters().size();
                     }
                     String path = "" + ConfigReader.getConfig().getNewPath() +
                             "/src/awsl/" + packageName + "/" + className + "/" + functionName;
-
                     File file = new File(path);
                     file.mkdirs();
+                    writeToFile(path + "/OutputType.java", getOutputClass(methodEntity));
+                    writeToFile(path + "/InputType.java", getInputClass(methodEntity));
                 }
             }
         }

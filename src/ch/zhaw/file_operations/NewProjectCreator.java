@@ -4,8 +4,6 @@ import ch.zhaw.exceptions.TooManyMainMethodsException;
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import japa.parser.ASTHelper;
-import japa.parser.JavaParser;
-import japa.parser.SourcesHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.body.*;
@@ -13,17 +11,14 @@ import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.ClassOrInterfaceType;
-import japa.parser.ast.type.Type;
-import japa.parser.ast.visitor.VoidVisitorAdapter;
-import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.*;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
-import java.util.LinkedList;
 import java.util.List;
+
+import static ch.zhaw.file_operations.UtilityClass.*;
 
 public class NewProjectCreator {
     private String newPath;
@@ -58,22 +53,10 @@ public class NewProjectCreator {
             writeToFile(classesPath + "/NewProjectCreatorAWSFfirstLetterToUpperCase.java",
                     createLambdaFunction(javaProjectEntityOld.getStaticMethods().get(3)));
             writeToFile(classesPath + "/OutputType.java",
-                    createGetSet(createOutPutType(javaProjectEntityOld.getStaticMethods().get(3))));
+                    getOutputClass(javaProjectEntityOld.getStaticMethods().get(3)));
             writeToFile(classesPath + "/InputType.java",
-                    createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(3))));
-            //System.out.println(createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2))));
-            //System.out.println(createGetSet(createInPutType(javaProjectEntityOld.getMainClass().getMainMethod())));
-            //creating a JSON of input object
-            InputType inputData = new InputType("hello");
-            CompilationUnit cu = createGetSet(createInPutType(javaProjectEntityOld.getStaticMethods().get(2)));
+                    getInputClass(javaProjectEntityOld.getStaticMethods().get(3)));
 
-            ObjectMapper objectMapper = new ObjectMapper();
-            String json = "";
-            try {
-                json = objectMapper.writeValueAsString(inputData);
-            } catch (JsonProcessingException e) {
-                e.printStackTrace();
-            }
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getClassEntity().getPath());
 
@@ -95,15 +78,7 @@ public class NewProjectCreator {
 //            e.printStackTrace();
 //        }
     }
-    private void writeToFile(String path, CompilationUnit cu){
-        try {
-            PrintWriter writer = new PrintWriter(path, "UTF-8");
-            writer.print(cu);
-            writer.close();
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-    }
+
     private CompilationUnit createLambdaFunction(MethodEntity methodEntity){
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         List<FieldDeclaration> staticFields = new ArrayList<>();
@@ -132,7 +107,6 @@ public class NewProjectCreator {
                 new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("OutputType"), "handleRequest");
         ASTHelper.addMember(classDeclaration, method);
 
-
         Parameter param1 = ASTHelper.createParameter(new ClassOrInterfaceType("InputType"), "inputType");
         Parameter param2 = ASTHelper.createParameter(new ClassOrInterfaceType("Context"), "context");
         ASTHelper.addParameter(method, param1);
@@ -149,7 +123,6 @@ public class NewProjectCreator {
                                 firstLetterToUpperCase(var.getId().getName()));
                 AssignExpr assignExpr = new AssignExpr(staticFieldVar, methodCallExpr, AssignExpr.Operator.assign);
                 ASTHelper.addStmt(bodyBlock, assignExpr);
-
             }
         }
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
@@ -175,10 +148,10 @@ public class NewProjectCreator {
     private BlockStmt returnReplace(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
         BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
         List<Statement> statements = new ArrayList<>(bodyBlock.getStmts());
-        for (Statement statment :
+        for (Statement statement :
                 statements) {
-            if (statment.toString().contains("return")){
-                String returnVar = statment.toString().substring(7, (statment.toString().length() - 1));
+            if (statement.toString().contains("return")){
+                String returnVar = statement.toString().substring(7, (statement.toString().length() - 1));
                 Expression outputTypeExpr = new NameExpr("OutputType outputType");
                 List<Expression> arguments = new ArrayList<>();
                 for (FieldDeclaration field:
@@ -198,10 +171,8 @@ public class NewProjectCreator {
                 BlockStmt returnBlock = new BlockStmt();
                 ASTHelper.addStmt(returnBlock, assign);
                 ASTHelper.addStmt(returnBlock, returnExpr);
-                //statment = returnBlock;
-                statements.add(statements.indexOf(statment), returnBlock);
-                statements.remove(statment);
-
+                statements.add(statements.indexOf(statement), returnBlock);
+                statements.remove(statement);
                 return bodyBlock;
             }
         }
@@ -228,137 +199,6 @@ public class NewProjectCreator {
         ASTHelper.addStmt(bodyBlock, returnExpr);
         return bodyBlock;
     }
-    private CompilationUnit createInPutType(MethodEntity methodEntity){
-        CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
-        List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
-        CompilationUnit inputCu = new CompilationUnit();
-        ClassOrInterfaceDeclaration declaration =
-                new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "InputType");
-        List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
-        ASTHelper.addTypeDeclaration(inputCu, declaration);
-        for (FieldDeclaration field:
-             fields) {
-            boolean isStaticNonFinal =
-                    ModifierSet.isStatic(field.getModifiers()) & !ModifierSet.isFinal(field.getModifiers());
-            //System.out.println("The fields " + field.getType() + " " + field.getVariables() + " modifier bool value is " + isStaticNonFinal);
-            if (isStaticNonFinal){
-                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
-                ASTHelper.addMember(declaration, tmp);
-            }
-        }
-        if (parameters != null){
-            for (Parameter param :
-                    parameters) {
-                FieldDeclaration fieldDeclaration =
-                        new FieldDeclaration(ModifierSet.PUBLIC, param.getType(), new VariableDeclarator(param.getId()));
-                ASTHelper.addMember(declaration, fieldDeclaration);
-            }
-        }
-
-
-
-        return inputCu;
-
-    }
-    private CompilationUnit createOutPutType(MethodEntity methodEntity){
-        CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
-        CompilationUnit outputCu = new CompilationUnit();
-        ClassOrInterfaceDeclaration declaration =
-                new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "OutputType");
-        ASTHelper.addTypeDeclaration(outputCu, declaration);
-        List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
-        for (FieldDeclaration field:
-                fields) {
-            boolean isStaticNonFinal =
-                    ModifierSet.isStatic(field.getModifiers()) & !ModifierSet.isFinal(field.getModifiers());
-            if (isStaticNonFinal){
-                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
-                ASTHelper.addMember(declaration, tmp);
-            }
-        }
-        Type returnType = methodEntity.getMethodDeclaration().getType();
-        if (!returnType.equals(ASTHelper.VOID_TYPE)){
-            FieldDeclaration fieldDeclaration =
-                    new FieldDeclaration(ModifierSet.PUBLIC, returnType, new VariableDeclarator(
-                            new VariableDeclaratorId(methodEntity.getMethodDeclaration().getName() + "Result")));
-            ASTHelper.addMember(declaration, fieldDeclaration);
-        }
-        return outputCu;
-
-    }
-    private CompilationUnit createGetSet(CompilationUnit compilationUnit){
-        FieldsVisitor fieldsVisitor = new FieldsVisitor();
-        fieldsVisitor.visit(compilationUnit, null);
-        List<FieldDeclaration> fieldDeclarationList = fieldsVisitor.getFieldDeclarationList();
-        ConstructorDeclaration constructor = new ConstructorDeclaration(ModifierSet.PUBLIC, compilationUnit.getTypes().get(0).getName());
-        ConstructorDeclaration emptyConstructor = new ConstructorDeclaration(ModifierSet.PUBLIC, compilationUnit.getTypes().get(0).getName());
-        List<Parameter> constrParameters = new LinkedList<>();
-        BlockStmt constrBlock = new BlockStmt();
-        BlockStmt emptyConstrBlock = new BlockStmt();
-        constructor.setBlock(constrBlock);
-        emptyConstructor.setBlock(emptyConstrBlock);
-        for (FieldDeclaration field :
-                fieldDeclarationList) {
-            for (VariableDeclarator var:
-                 field.getVariables()) {
-                Parameter constrParam = new Parameter(field.getType(), var.getId());
-                constrParameters.add(constrParam);
-                FieldAccessExpr fieldAccessExpr = new FieldAccessExpr(new ThisExpr(), var.getId().getName());
-                AssignExpr assignExprConstr =
-                        new AssignExpr(fieldAccessExpr, new NameExpr(var.getId().getName()), AssignExpr.Operator.assign);
-                ASTHelper.addStmt(constrBlock, assignExprConstr);
-
-                MethodDeclaration setter =
-                        new MethodDeclaration(ModifierSet.PUBLIC, ASTHelper.VOID_TYPE, "set" +
-                                firstLetterToUpperCase(var.getId().getName()));
-                BlockStmt setBlock = new BlockStmt();
-                setter.setBody(setBlock);
-                FieldAccessExpr fieldExpr = new FieldAccessExpr(new ThisExpr(), var.getId().getName());
-                AssignExpr assignExpr = new AssignExpr(fieldExpr, new NameExpr(var.getId().getName()), AssignExpr.Operator.assign);
-                ASTHelper.addStmt(setBlock, assignExpr);
-                Parameter param = ASTHelper.createParameter(field.getType(), var.getId().getName());
-                ASTHelper.addParameter(setter, param);
-                ASTHelper.addMember(compilationUnit.getTypes().get(0), setter);
-
-                MethodDeclaration getter =
-                        new MethodDeclaration(ModifierSet.PUBLIC, field.getType(), "get" +
-                        firstLetterToUpperCase(var.getId().getName()));
-                BlockStmt getBlock = new BlockStmt();
-                NameExpr returnExpr = new NameExpr("return " + var.getId().getName());
-                ASTHelper.addStmt(getBlock, returnExpr);
-                getter.setBody(getBlock);
-                ASTHelper.addMember(compilationUnit.getTypes().get(0), getter);
-
-            }
-
-
-        }
-        constructor.setParameters(constrParameters);
-        ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
-        ASTHelper.addMember(compilationUnit.getTypes().get(0), emptyConstructor);
-
-
-        return  compilationUnit;
-    }
-    public static String firstLetterToUpperCase(String string){
-        String first = string.substring(0, 1);
-        String second = string.substring(1, string.length());
-        first = first.toUpperCase();
-        return first + second;
-    }
-    private class FieldsVisitor extends VoidVisitorAdapter {
-        private List<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
-
-        @Override
-        public void visit(FieldDeclaration n, Object arg) {
-            fieldDeclarationList.add(n);
-            super.visit(n, arg);
-        }
-        public List<FieldDeclaration> getFieldDeclarationList() {
-            return fieldDeclarationList;
-        }
-    }
-
     private List<ImportDeclaration> createImports(){
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
         ImportDeclaration imd1 = new ImportDeclaration();
