@@ -43,7 +43,7 @@ public class NewProjectCreator {
         /*
         JarUploader jarUploader = new JarUploader(ConfigReader.getConfig().getFileName(), "/home/dord/LambdaA.zip", "example.LambdaA::handleRequest", 30, 1024);
         jarUploader.uploadFunction();
-        */
+
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getClassEntity().getPath());
 
@@ -52,7 +52,7 @@ public class NewProjectCreator {
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
             System.out.println("=====================================================================================");
             System.out.println(invokeMethodCreator.addBufferByteReaderMethod(javaProjectEntityOld.getStaticMethods().get(3).getClassEntity().getCu()));
-
+            */
             //jarBuilder.mvnBuild("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase/");
 
     }
@@ -61,7 +61,9 @@ public class NewProjectCreator {
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         List<FieldDeclaration> staticFields = new ArrayList<>();
         CompilationUnit newCU = new CompilationUnit();
-        newCU.setImports(createImports());
+        List<ImportDeclaration> imports = methodEntity.getClassEntity().getCu().getImports();
+        imports.addAll(createImports());
+        newCU.setImports(imports);
         /*
         ClassOrInterfaceDeclaration classDeclaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, cu.getTypes().get(0).getName() + "AWSF" +

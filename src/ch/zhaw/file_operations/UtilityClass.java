@@ -37,6 +37,7 @@ public class UtilityClass {
     private static CompilationUnit createInPutType(MethodEntity methodEntity){
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
         CompilationUnit inputCu = new CompilationUnit();
+        inputCu.setImports(methodEntity.getClassEntity().getCu().getImports());
         ClassOrInterfaceDeclaration declaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "InputType");
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
@@ -68,6 +69,7 @@ public class UtilityClass {
     }
     private static CompilationUnit createOutPutType(MethodEntity methodEntity){
         CompilationUnit outputCu = new CompilationUnit();
+        outputCu.setImports(methodEntity.getClassEntity().getCu().getImports());
         ClassOrInterfaceDeclaration declaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "OutputType");
         ASTHelper.addTypeDeclaration(outputCu, declaration);
@@ -139,17 +141,11 @@ public class UtilityClass {
                 ASTHelper.addStmt(getBlock, returnExpr);
                 getter.setBody(getBlock);
                 ASTHelper.addMember(compilationUnit.getTypes().get(0), getter);
-
             }
-
-
         }
         constructor.setParameters(constrParameters);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), emptyConstructor);
-
-
-
         return  compilationUnit;
     }
     private static class FieldsVisitor extends VoidVisitorAdapter {

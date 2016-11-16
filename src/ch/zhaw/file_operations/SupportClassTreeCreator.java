@@ -2,10 +2,12 @@ package ch.zhaw.file_operations;
 
 import japa.parser.ast.body.MethodDeclaration;
 import org.apache.maven.shared.invoker.MavenInvocationException;
+import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Files;
 import java.util.List;
 
 import static ch.zhaw.file_operations.UtilityClass.getInputClass;
@@ -61,6 +63,12 @@ public class SupportClassTreeCreator {
                     writeToFile(classPath + "/OutputType.java", getOutputClass(methodEntity));
                     writeToFile(classPath + "/InputType.java", getInputClass(methodEntity));
                     writeToFile(classPath + "/LambdaFunction.java", projectCreator.createLambdaFunction(methodEntity));
+                    try {
+                        FileUtils.copyDirectoryStructure(new File(ConfigReader.getConfig().getPath() + "/src/"),
+                                new File(classPath));
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
                     try {
                         jarBuilder.mvnBuild(pathLambda);
                     } catch (MavenInvocationException e) {
