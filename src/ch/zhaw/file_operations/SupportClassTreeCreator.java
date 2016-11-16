@@ -1,8 +1,11 @@
 package ch.zhaw.file_operations;
 
 import japa.parser.ast.body.MethodDeclaration;
+import org.apache.maven.shared.invoker.MavenInvocationException;
 
 import java.io.File;
+import java.io.IOException;
+import java.net.URISyntaxException;
 import java.util.List;
 
 import static ch.zhaw.file_operations.UtilityClass.getInputClass;
@@ -42,6 +45,31 @@ public class SupportClassTreeCreator {
                     file.mkdirs();
                     writeToFile(path + "/OutputType.java", getOutputClass(methodEntity));
                     writeToFile(path + "/InputType.java", getInputClass(methodEntity));
+
+                    String pathLambda = "" + ConfigReader.getConfig().getNewPath() +
+                            "/LambdaProjects/" + packageName + "/" + className + "/" + functionName;
+                    NewProjectCreator projectCreator = new NewProjectCreator();
+                    File file1 = new File(pathLambda);
+                    file1.mkdirs();
+                    JarBuilder jarBuilder = new JarBuilder();
+                    String classPath = "";
+                    try {
+                        classPath = jarBuilder.createProjTree(pathLambda);
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    writeToFile(classPath + "/OutputType.java", getOutputClass(methodEntity));
+                    writeToFile(classPath + "/InputType.java", getInputClass(methodEntity));
+                    writeToFile(classPath + "/LambdaFunction.java", projectCreator.createLambdaFunction(methodEntity));
+                    try {
+                        jarBuilder.mvnBuild(pathLambda);
+                    } catch (MavenInvocationException e) {
+                        e.printStackTrace();
+                    } catch (URISyntaxException e) {
+                        e.printStackTrace();
+                    }
+
+
                 }
             }
         }

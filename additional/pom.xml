@@ -8,6 +8,11 @@
   <version>1.0-SNAPSHOT</version>
   <name>lambda-java-example</name>
 
+  <properties>
+    <maven.compiler.source>1.7</maven.compiler.source>
+    <maven.compiler.target>1.7</maven.compiler.target>
+  </properties>
+
   <dependencies>
     <dependency>
       <groupId>com.amazonaws</groupId>

@@ -9,6 +9,7 @@ import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import org.codehaus.plexus.util.FileUtils;
@@ -43,20 +44,6 @@ public class NewProjectCreator {
         JarUploader jarUploader = new JarUploader(ConfigReader.getConfig().getFileName(), "/home/dord/LambdaA.zip", "example.LambdaA::handleRequest", 30, 1024);
         jarUploader.uploadFunction();
         */
-
-        try{
-            JarBuilder jarBuilder = new JarBuilder();
-
-            jarBuilder.creatDir("LambdaProjects");
-            String classesPath = jarBuilder.createProjTree("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase");
-
-            writeToFile(classesPath + "/NewProjectCreatorAWSFfirstLetterToUpperCase.java",
-                    createLambdaFunction(javaProjectEntityOld.getStaticMethods().get(3)));
-            writeToFile(classesPath + "/OutputType.java",
-                    getOutputClass(javaProjectEntityOld.getStaticMethods().get(3)));
-            writeToFile(classesPath + "/InputType.java",
-                    getInputClass(javaProjectEntityOld.getStaticMethods().get(3)));
-
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
             System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getClassEntity().getPath());
 
@@ -68,26 +55,20 @@ public class NewProjectCreator {
 
             //jarBuilder.mvnBuild("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase/");
 
-
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-//        catch (MavenInvocationException e) {
-//            e.printStackTrace();
-//        } catch (URISyntaxException e) {
-//            e.printStackTrace();
-//        }
     }
 
-    private CompilationUnit createLambdaFunction(MethodEntity methodEntity){
+    public CompilationUnit createLambdaFunction(MethodEntity methodEntity){
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         List<FieldDeclaration> staticFields = new ArrayList<>();
         CompilationUnit newCU = new CompilationUnit();
         newCU.setImports(createImports());
-
+        /*
         ClassOrInterfaceDeclaration classDeclaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, cu.getTypes().get(0).getName() + "AWSF" +
                         methodEntity.getMethodDeclaration().getName());
+                        */
+        ClassOrInterfaceDeclaration classDeclaration =
+                new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "LambdaFunction");
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
         for (FieldDeclaration field :
                 fields) {
@@ -97,7 +78,6 @@ public class NewProjectCreator {
                 staticFields.add(field);
                 ASTHelper.addMember(classDeclaration, field);
             }
-
         }
         List implementsList = new ArrayList();
         implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
@@ -113,10 +93,10 @@ public class NewProjectCreator {
         ASTHelper.addParameter(method, param2);
         BlockStmt bodyBlock = new BlockStmt();
 
-        for (FieldDeclaration staticField:
-                staticFields){
+        for (FieldDeclaration field:
+                fields){
             for (VariableDeclarator var:
-                    staticField.getVariables()) {
+                    field.getVariables()) {
                 NameExpr staticFieldVar = new NameExpr(var.getId().getName());
                 MethodCallExpr methodCallExpr =
                         new MethodCallExpr(new NameExpr("inputType"), "get" +
@@ -137,20 +117,21 @@ public class NewProjectCreator {
                 ASTHelper.addStmt(bodyBlock, assignExpr);
             }
         }
-        method.setBody(bodyBlock);
         if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
-            ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity, staticFields));
+            ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity, fields));
         }else {
-            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity, staticFields));
+            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity, fields));
         }
+        method.setBody(bodyBlock);
         return newCU;
     }
     private BlockStmt returnReplace(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
         BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
-        List<Statement> statements = new ArrayList<>(bodyBlock.getStmts());
+        List<Statement> statements = bodyBlock.getStmts();
+        List<Statement> newStatments = new ArrayList<>();
         for (Statement statement :
                 statements) {
-            if (statement.toString().contains("return")){
+            if (statement instanceof ReturnStmt){
                 String returnVar = statement.toString().substring(7, (statement.toString().length() - 1));
                 Expression outputTypeExpr = new NameExpr("OutputType outputType");
                 List<Expression> arguments = new ArrayList<>();
@@ -171,15 +152,16 @@ public class NewProjectCreator {
                 BlockStmt returnBlock = new BlockStmt();
                 ASTHelper.addStmt(returnBlock, assign);
                 ASTHelper.addStmt(returnBlock, returnExpr);
-                statements.add(statements.indexOf(statement), returnBlock);
-                statements.remove(statement);
-                return bodyBlock;
+                newStatments.add(returnBlock);
+            }else{
+                newStatments.add(statement);
             }
         }
+        bodyBlock = new BlockStmt(newStatments);
         return bodyBlock;
     }
     private BlockStmt addReturnCode(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
-        BlockStmt bodyBlock = new BlockStmt();
+        BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
         Expression outputTypeExpr = new NameExpr("OutputType outputType");
         List<Expression> arguments = new ArrayList<>();
         for (FieldDeclaration field:

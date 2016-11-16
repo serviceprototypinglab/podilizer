@@ -60,7 +60,7 @@ public class JarBuilder {
     }
     void mvnBuild(String path) throws MavenInvocationException, URISyntaxException {
         InvocationRequest request = new DefaultInvocationRequest();
-        request.setPomFile(new File(path + "pom.xml"));
+        request.setPomFile(new File(path + "/pom.xml"));
         request.setGoals( Arrays.asList( "clean", "install" ) );
 
         Invoker invoker = new DefaultInvoker();

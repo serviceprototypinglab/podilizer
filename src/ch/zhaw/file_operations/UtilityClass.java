@@ -1,5 +1,6 @@
 package ch.zhaw.file_operations;
 
+import com.sun.xml.internal.ws.org.objectweb.asm.FieldVisitor;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.*;
@@ -96,7 +97,7 @@ public class UtilityClass {
         return outputCu;
 
     }
-    private static CompilationUnit createGetSet(CompilationUnit compilationUnit){
+    public static CompilationUnit createGetSet(CompilationUnit compilationUnit){
         FieldsVisitor fieldsVisitor = new FieldsVisitor();
         fieldsVisitor.visit(compilationUnit, null);
         List<FieldDeclaration> fieldDeclarationList = fieldsVisitor.getFieldDeclarationList();
@@ -146,6 +147,7 @@ public class UtilityClass {
         constructor.setParameters(constrParameters);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), emptyConstructor);
+
 
 
         return  compilationUnit;

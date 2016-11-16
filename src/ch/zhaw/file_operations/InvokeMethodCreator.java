@@ -40,11 +40,12 @@ public class InvokeMethodCreator {
 
         //--creating input \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
-        List<FieldDeclaration> staticFields = getOnlyStaticFields(methodEntity.getClassEntity().getFields());
-        Expression outputTypeExpr = new NameExpr("InputType inputType");
+        // List<FieldDeclaration> staticFields = getOnlyStaticFields(methodEntity.getClassEntity().getFields());
+        List<FieldDeclaration> allFields = methodEntity.getClassEntity().getFields();
+        Expression outputTypeExpr = new NameExpr(getSupportClassPackage(methodEntity) + "InputType inputType");
         List<Expression> arguments = new ArrayList<>();
         for (FieldDeclaration field :
-                staticFields) {
+                allFields) {
             for (VariableDeclarator var :
                     field.getVariables()) {
                 arguments.add(new NameExpr(var.getId().getName()));
@@ -57,7 +58,7 @@ public class InvokeMethodCreator {
                 arguments.add(new NameExpr(param.getId().getName()));
             }
         }
-        ClassOrInterfaceType type = new ClassOrInterfaceType("InputType");
+        ClassOrInterfaceType type = new ClassOrInterfaceType(getSupportClassPackage(methodEntity) + "InputType");
         ObjectCreationExpr objectCreationExpr =
                 new ObjectCreationExpr(null, type, arguments);
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
@@ -74,7 +75,7 @@ public class InvokeMethodCreator {
         NameExpr invokeInit = new NameExpr("InvokeRequest invokeRequest = new InvokeRequest();\n" +
                 "            invokeRequest.setFunctionName(FunctionName);\n" +
                 "            invokeRequest.setPayload(inputType)");
-        NameExpr invoke = new NameExpr("OutputType outputType = byteBufferToString(\n" +
+        NameExpr invoke = new NameExpr(getSupportClassPackage(methodEntity) + "OutputType outputType = byteBufferToString(\n" +
                 "                    lambdaClient.invoke(invokeRequest).getPayload(),\n" +
                 "                    Charset.forName(\"UTF-8\"),logger)");
         ASTHelper.addStmt(bodyBlock, accessIDKeyVarExpr);
@@ -93,7 +94,7 @@ public class InvokeMethodCreator {
         ASTHelper.addStmt(bodyBlock, invokeInit);
         ASTHelper.addStmt(bodyBlock, invoke);
         for (FieldDeclaration staticField:
-                staticFields){
+                allFields){
             for (VariableDeclarator var:
                     staticField.getVariables()) {
                 NameExpr staticFieldVar = new NameExpr(var.getId().getName());
@@ -170,5 +171,21 @@ public class InvokeMethodCreator {
         declaration.setBody(methodBodyStmt);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), declaration);
         return compilationUnit;
+    }
+    private String getSupportClassPackage(MethodEntity methodEntity){
+        String result = "awsl.";
+        String packageStr = methodEntity.getClassEntity().getCu().getPackage().getName().toString();
+        if (packageStr != null){
+            result = result + packageStr + ".";
+        }
+        String className = methodEntity.getClassEntity().getCu().getTypes().get(0).getName();
+        result = result + className + ".";
+        MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
+        String functionName = "" + methodDeclaration.getName();
+        if (methodDeclaration.getParameters() != null){
+            functionName = functionName + methodDeclaration.getParameters().size();
+        }
+        result = result + functionName + ".";
+        return result;
     }
 }
