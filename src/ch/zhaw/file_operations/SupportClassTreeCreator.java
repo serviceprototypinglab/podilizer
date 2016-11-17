@@ -1,13 +1,14 @@
 package ch.zhaw.file_operations;
 
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
+import japa.parser.ast.type.ClassOrInterfaceType;
 import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
 import java.util.List;
 
 import static ch.zhaw.file_operations.UtilityClass.getInputClass;
@@ -54,21 +55,27 @@ public class SupportClassTreeCreator {
                     File file1 = new File(pathLambda);
                     file1.mkdirs();
                     JarBuilder jarBuilder = new JarBuilder();
+//                    System.out.println(methodEntity.getClassEntity().getCu().getTypes().get(0).getName() +  " - class located -" +
+//                            packageName);
                     String classPath = "";
                     try {
                         classPath = jarBuilder.createProjTree(pathLambda);
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
-                    writeToFile(classPath + "/OutputType.java", getOutputClass(methodEntity));
-                    writeToFile(classPath + "/InputType.java", getInputClass(methodEntity));
-                    writeToFile(classPath + "/LambdaFunction.java", projectCreator.createLambdaFunction(methodEntity));
                     try {
                         FileUtils.copyDirectoryStructure(new File(ConfigReader.getConfig().getPath() + "/src/"),
                                 new File(classPath));
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
+                    classPath = classPath + "/" + packageName;
+                    writeToFile(classPath + "/OutputType.java", getOutputClass(methodEntity));
+                    writeToFile(classPath + "/InputType.java", getInputClass(methodEntity));
+                    writeToFile(classPath + "/LambdaFunction.java", projectCreator.createLambdaFunction(methodEntity));
+                    ClassOrInterfaceDeclaration parentClass =
+                            (ClassOrInterfaceDeclaration)methodEntity.getMethodDeclaration().getParentNode();
+                    System.out.println(parentClass.getName());
                     try {
                         jarBuilder.mvnBuild(pathLambda);
                     } catch (MavenInvocationException e) {

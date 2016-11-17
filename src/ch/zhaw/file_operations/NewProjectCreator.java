@@ -1,8 +1,6 @@
 package ch.zhaw.file_operations;
 
 import ch.zhaw.exceptions.TooManyMainMethodsException;
-import com.fasterxml.jackson.core.JsonProcessingException;
-import com.fasterxml.jackson.databind.ObjectMapper;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
@@ -62,8 +60,15 @@ public class NewProjectCreator {
         List<FieldDeclaration> staticFields = new ArrayList<>();
         CompilationUnit newCU = new CompilationUnit();
         List<ImportDeclaration> imports = methodEntity.getClassEntity().getCu().getImports();
-        imports.addAll(createImports());
+        if (imports == null){
+            imports = new ArrayList<>();
+        }
+        if (!imports.containsAll(createImports())){
+            imports.addAll(createImports());
+        }
         newCU.setImports(imports);
+        newCU.setPackage(methodEntity.getClassEntity().getCu().getPackage());
+
         /*
         ClassOrInterfaceDeclaration classDeclaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, cu.getTypes().get(0).getName() + "AWSF" +
@@ -71,15 +76,21 @@ public class NewProjectCreator {
                         */
         ClassOrInterfaceDeclaration classDeclaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "LambdaFunction");
+        if(methodEntity.getParentClass().getExtends() != null){
+            classDeclaration.setExtends(methodEntity.getParentClass().getExtends());
+        }
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
         for (FieldDeclaration field :
                 fields) {
+            ASTHelper.addMember(classDeclaration, field);
+            /*
             boolean isStaticNonFinal =
                     field.getModifiers() == ModifierSet.STATIC && field.getModifiers() != ModifierSet.FINAL;
             if (isStaticNonFinal){
                 staticFields.add(field);
                 ASTHelper.addMember(classDeclaration, field);
             }
+            */
         }
         List implementsList = new ArrayList();
         implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
@@ -87,6 +98,10 @@ public class NewProjectCreator {
         ASTHelper.addTypeDeclaration(newCU, classDeclaration);
         MethodDeclaration method =
                 new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("OutputType"), "handleRequest");
+        List<NameExpr> throwsList = methodEntity.getMethodDeclaration().getThrows();
+        if(throwsList != null){
+            method.setThrows(throwsList);
+        }
         ASTHelper.addMember(classDeclaration, method);
 
         Parameter param1 = ASTHelper.createParameter(new ClassOrInterfaceType("InputType"), "inputType");

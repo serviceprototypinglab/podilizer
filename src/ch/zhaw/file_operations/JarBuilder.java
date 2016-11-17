@@ -42,7 +42,7 @@ public class JarBuilder {
     public void setProjectToBuildLocation(Path projectToBuildLocation) {
         this.projectToBuildLocation = projectToBuildLocation;
     }
-    void creatDir(String path){
+    public void creatDir(String path){
         File dir = new File(path);
         if (!dir.exists()){
             dir.mkdir();
@@ -50,7 +50,7 @@ public class JarBuilder {
             System.err.println("Failed to create a directory");
         }
     }
-    String createProjTree(String path) throws IOException {
+    public String createProjTree(String path) throws IOException {
         creatDir(path);
         Files.copy(Paths.get("additional/pom.xml"), Paths.get(path + "/pom.xml"), REPLACE_EXISTING);
         creatDir(path + "/src");

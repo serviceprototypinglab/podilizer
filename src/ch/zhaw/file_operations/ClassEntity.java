@@ -65,6 +65,7 @@ public class ClassEntity {;
         @Override
         public void visit(MethodDeclaration n, Object arg) {
             methodDeclarationList.add(n);
+
             super.visit(n, arg);
         }
         public List<MethodDeclaration> getMethodDeclarationList(){

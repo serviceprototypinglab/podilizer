@@ -1,6 +1,5 @@
 package ch.zhaw.file_operations;
 
-import com.sun.xml.internal.ws.org.objectweb.asm.FieldVisitor;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.*;
@@ -37,6 +36,7 @@ public class UtilityClass {
     private static CompilationUnit createInPutType(MethodEntity methodEntity){
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
         CompilationUnit inputCu = new CompilationUnit();
+        inputCu.setPackage(methodEntity.getClassEntity().getCu().getPackage());
         inputCu.setImports(methodEntity.getClassEntity().getCu().getImports());
         ClassOrInterfaceDeclaration declaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "InputType");
@@ -69,6 +69,7 @@ public class UtilityClass {
     }
     private static CompilationUnit createOutPutType(MethodEntity methodEntity){
         CompilationUnit outputCu = new CompilationUnit();
+        outputCu.setPackage(methodEntity.getClassEntity().getCu().getPackage());
         outputCu.setImports(methodEntity.getClassEntity().getCu().getImports());
         ClassOrInterfaceDeclaration declaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "OutputType");
@@ -103,13 +104,19 @@ public class UtilityClass {
         FieldsVisitor fieldsVisitor = new FieldsVisitor();
         fieldsVisitor.visit(compilationUnit, null);
         List<FieldDeclaration> fieldDeclarationList = fieldsVisitor.getFieldDeclarationList();
-        ConstructorDeclaration constructor = new ConstructorDeclaration(ModifierSet.PUBLIC, compilationUnit.getTypes().get(0).getName());
-        ConstructorDeclaration emptyConstructor = new ConstructorDeclaration(ModifierSet.PUBLIC, compilationUnit.getTypes().get(0).getName());
+        ConstructorDeclaration constructor = new ConstructorDeclaration(ModifierSet.PUBLIC,
+                compilationUnit.getTypes().get(0).getName());
         List<Parameter> constrParameters = new LinkedList<>();
         BlockStmt constrBlock = new BlockStmt();
-        BlockStmt emptyConstrBlock = new BlockStmt();
+
         constructor.setBlock(constrBlock);
-        emptyConstructor.setBlock(emptyConstrBlock);
+        if (fieldDeclarationList.size() > 0){
+            ConstructorDeclaration emptyConstructor = new ConstructorDeclaration(ModifierSet.PUBLIC,
+                    compilationUnit.getTypes().get(0).getName());
+            BlockStmt emptyConstrBlock = new BlockStmt();
+            emptyConstructor.setBlock(emptyConstrBlock);
+            ASTHelper.addMember(compilationUnit.getTypes().get(0), emptyConstructor);
+        }
         for (FieldDeclaration field :
                 fieldDeclarationList) {
             for (VariableDeclarator var:
@@ -145,7 +152,6 @@ public class UtilityClass {
         }
         constructor.setParameters(constrParameters);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
-        ASTHelper.addMember(compilationUnit.getTypes().get(0), emptyConstructor);
         return  compilationUnit;
     }
     private static class FieldsVisitor extends VoidVisitorAdapter {

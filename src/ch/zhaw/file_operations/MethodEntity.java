@@ -1,7 +1,11 @@
 package ch.zhaw.file_operations;
 
+import japa.parser.ASTHelper;
+import japa.parser.ast.Node;
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.expr.MethodCallExpr;
+import japa.parser.ast.expr.ObjectCreationExpr;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
 import java.util.ArrayList;
@@ -28,7 +32,17 @@ public class MethodEntity {
         MethodCallsVisitor methodCallsVisitor = new MethodCallsVisitor();
         methodCallsVisitor.visit(methodDeclaration, null);
         methodCallExprs = methodCallsVisitor.getMethodCallExprs();
+    }
 
+    public ClassOrInterfaceDeclaration getParentClass(){
+        try {
+            ClassOrInterfaceDeclaration result = (ClassOrInterfaceDeclaration)methodDeclaration.getParentNode();
+            return result;
+        }catch (ClassCastException e){
+            ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)methodDeclaration.getParentNode();
+            // TODO: 11/17/16 prevent anonimous classes processing
+        }
+        return null;
     }
 
     public MethodDeclaration getMethodDeclaration() {

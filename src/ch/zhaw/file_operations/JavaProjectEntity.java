@@ -12,7 +12,7 @@ import java.util.Iterator;
 import java.util.List;
 
 public class JavaProjectEntity {
-    private static final String pattern = "*.java";
+    private String pattern = "*.java";
     private Path location;
     private List<ClassEntity> classEntities;
     private List<NameExpr> methodEntities;
@@ -29,11 +29,10 @@ public class JavaProjectEntity {
             e.printStackTrace();
         }
         methodEntities = findAllMethods(classEntities);
-
     }
 
     public class Finder extends SimpleFileVisitor<Path> {
-        private final PathMatcher matcher;
+        private PathMatcher matcher;
         private List<ClassEntity> files = new ArrayList<>();
 
 
