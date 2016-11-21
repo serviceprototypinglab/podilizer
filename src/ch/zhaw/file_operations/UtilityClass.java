@@ -42,10 +42,16 @@ public class UtilityClass {
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "InputType");
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
         ASTHelper.addTypeDeclaration(inputCu, declaration);
-        for (FieldDeclaration field:
-                fields) {
-            FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
-            ASTHelper.addMember(declaration, tmp);
+        ArrayList<String> filedsNames = new ArrayList<>();
+        if (fields != null){
+            for (FieldDeclaration field:
+                    fields) {
+                for (VariableDeclarator var :
+                        field.getVariables()) {
+                    filedsNames.add(var.getId().getName());
+                }
+                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
+                ASTHelper.addMember(declaration, tmp);
             /*
             ~~ Only static fields processing ~~
 
@@ -56,16 +62,28 @@ public class UtilityClass {
                 ASTHelper.addMember(declaration, tmp);
             }
             */
+            }
         }
+
         if (parameters != null){
             for (Parameter param :
                     parameters) {
                 FieldDeclaration fieldDeclaration =
-                        new FieldDeclaration(ModifierSet.PUBLIC, param.getType(), new VariableDeclarator(param.getId()));
+                        new FieldDeclaration(ModifierSet.PUBLIC, param.getType(),
+                                getFieldNameFromParam(param.getId(), filedsNames));
                 ASTHelper.addMember(declaration, fieldDeclaration);
             }
         }
         return inputCu;
+    }
+    public static VariableDeclarator getFieldNameFromParam(VariableDeclaratorId param, ArrayList<String> fieldsNames){
+        String result = param.getName();
+        if (fieldsNames.contains(result)){
+            result = result + "1";
+            result = getFieldNameFromParam(new VariableDeclaratorId(result),
+                    fieldsNames).getId().getName();
+        }
+        return new VariableDeclarator(new VariableDeclaratorId(result));
     }
     private static CompilationUnit createOutPutType(MethodEntity methodEntity){
         CompilationUnit outputCu = new CompilationUnit();
@@ -117,6 +135,7 @@ public class UtilityClass {
             emptyConstructor.setBlock(emptyConstrBlock);
             ASTHelper.addMember(compilationUnit.getTypes().get(0), emptyConstructor);
         }
+        ArrayList<String> fieldsNames = new ArrayList<>();
         for (FieldDeclaration field :
                 fieldDeclarationList) {
             for (VariableDeclarator var:
@@ -152,10 +171,12 @@ public class UtilityClass {
         }
         constructor.setParameters(constrParameters);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
+        String ss = new FieldsVisitor().s;
         return  compilationUnit;
     }
     private static class FieldsVisitor extends VoidVisitorAdapter {
         private List<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
+        public String s;
 
         @Override
         public void visit(FieldDeclaration n, Object arg) {

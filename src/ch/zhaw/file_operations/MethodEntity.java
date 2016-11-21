@@ -1,13 +1,12 @@
 package ch.zhaw.file_operations;
 
-import japa.parser.ASTHelper;
-import japa.parser.ast.Node;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.ObjectCreationExpr;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +39,8 @@ public class MethodEntity {
             return result;
         }catch (ClassCastException e){
             ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)methodDeclaration.getParentNode();
-            // TODO: 11/17/16 prevent anonimous classes processing
+            // TODO: 11/17/16 prevent anonymous classes processing
+            //this = new MethodEntity(new MethodDeclaration(), new ClassEntity(Paths.get("asdasd")));
         }
         return null;
     }

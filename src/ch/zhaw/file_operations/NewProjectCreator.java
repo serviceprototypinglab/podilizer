@@ -4,12 +4,14 @@ import ch.zhaw.exceptions.TooManyMainMethodsException;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
+import japa.parser.ast.Node;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.stmt.ReturnStmt;
 import japa.parser.ast.stmt.Statement;
 import japa.parser.ast.type.ClassOrInterfaceType;
+import japa.parser.ast.visitor.VoidVisitorAdapter;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.*;
@@ -58,6 +60,7 @@ public class NewProjectCreator {
     public CompilationUnit createLambdaFunction(MethodEntity methodEntity){
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         List<FieldDeclaration> staticFields = new ArrayList<>();
+        changeFiledCalls(methodEntity.getMethodDeclaration().getBody());
         CompilationUnit newCU = new CompilationUnit();
         List<ImportDeclaration> imports = methodEntity.getClassEntity().getCu().getImports();
         if (imports == null){
@@ -109,12 +112,13 @@ public class NewProjectCreator {
         ASTHelper.addParameter(method, param1);
         ASTHelper.addParameter(method, param2);
         BlockStmt bodyBlock = new BlockStmt();
-
+        ArrayList<String> fieldsNames = new ArrayList<>();
         for (FieldDeclaration field:
                 fields){
             for (VariableDeclarator var:
                     field.getVariables()) {
-                NameExpr staticFieldVar = new NameExpr(var.getId().getName());
+                fieldsNames.add(var.getId().getName());
+                NameExpr staticFieldVar = new NameExpr("this." + var.getId().getName());
                 MethodCallExpr methodCallExpr =
                         new MethodCallExpr(new NameExpr("inputType"), "get" +
                                 firstLetterToUpperCase(var.getId().getName()));
@@ -129,7 +133,7 @@ public class NewProjectCreator {
                 NameExpr localVar = new NameExpr(parameter.getType().toString() + " " + parameter.getId().getName());
                 MethodCallExpr methodCallExpr =
                         new MethodCallExpr(new NameExpr("inputType"), "get" +
-                                firstLetterToUpperCase(parameter.getId().getName()));
+                                firstLetterToUpperCase(getFieldNameFromParam(parameter.getId(), fieldsNames).getId().getName()));
                 AssignExpr assignExpr = new AssignExpr(localVar, methodCallExpr, AssignExpr.Operator.assign);
                 ASTHelper.addStmt(bodyBlock, assignExpr);
             }
@@ -142,7 +146,35 @@ public class NewProjectCreator {
         method.setBody(bodyBlock);
         return newCU;
     }
-    private BlockStmt returnReplace(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
+    private BlockStmt changeFiledCalls(BlockStmt blockStmt){
+        List<Statement> statements = blockStmt.getStmts();
+        List<Statement> newStatemnets = new ArrayList<>();
+        FieldAccessExprVisitor fieldAccessExprVisitor = new FieldAccessExprVisitor();
+        List<FieldAccessExpr> fieldAccessExprList = new ArrayList<>();
+        fieldAccessExprVisitor.visit(blockStmt, null);
+        fieldAccessExprList.addAll(fieldAccessExprVisitor.getFieldAccessExprList());
+        System.out.println(blockStmt);
+        System.out.println("--------------------------------------------------------------------");
+        System.out.println(fieldAccessExprList);
+        for (Statement statement :
+                statements) {
+            if (statement.contains(new FieldAccessExpr())){
+            }
+        }
+        return new BlockStmt(newStatemnets);
+    }
+    private class FieldAccessExprVisitor extends VoidVisitorAdapter{
+        List<FieldAccessExpr> fieldAccessExprList = new ArrayList<>();
+        @Override
+        public void visit(FieldAccessExpr n, Object arg) {
+            fieldAccessExprList.add(n);
+            super.visit(n, arg);
+        }
+        public List<FieldAccessExpr> getFieldAccessExprList(){
+            return fieldAccessExprList;
+        }
+    }
+    private BlockStmt returnReplace(MethodEntity methodEntity, List<FieldDeclaration> fields){
         BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
         List<Statement> statements = bodyBlock.getStmts();
         List<Statement> newStatments = new ArrayList<>();
@@ -153,10 +185,10 @@ public class NewProjectCreator {
                 Expression outputTypeExpr = new NameExpr("OutputType outputType");
                 List<Expression> arguments = new ArrayList<>();
                 for (FieldDeclaration field:
-                        staticFields) {
+                        fields) {
                     for (VariableDeclarator var :
                             field.getVariables()) {
-                        arguments.add(new NameExpr(var.getId().getName()));
+                        arguments.add(new NameExpr("this." + var.getId().getName()));
                     }
                 }
                 arguments.add(new NameExpr(returnVar));
@@ -177,15 +209,15 @@ public class NewProjectCreator {
         bodyBlock = new BlockStmt(newStatments);
         return bodyBlock;
     }
-    private BlockStmt addReturnCode(MethodEntity methodEntity, List<FieldDeclaration> staticFields){
+    private BlockStmt addReturnCode(MethodEntity methodEntity, List<FieldDeclaration> fields){
         BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
         Expression outputTypeExpr = new NameExpr("OutputType outputType");
         List<Expression> arguments = new ArrayList<>();
         for (FieldDeclaration field:
-                staticFields) {
+                fields) {
             for (VariableDeclarator var :
                     field.getVariables()) {
-                arguments.add(new NameExpr(var.getId().getName()));
+                arguments.add(new NameExpr("this." + var.getId().getName()));
             }
         }
         ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
