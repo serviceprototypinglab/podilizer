@@ -1,8 +1,8 @@
-path: /home/dord/IdeaProjects/service_tooling_initiative
-newPath: /home/dord/IdeaProjects/testNewProject
-fileName: functionName
-region: us-west-2
-role: arn:aws:iam::520974061566:role/lambda_basic_execution
-mavenHome: /usr/share/maven
-awsAccessKeyId: AKIAJLCK3VX4HPPGEJQQ
-awsSecretAccessKey: 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
+path: <path of the translated project>
+newPath: <path for the new project>
+fileName:
+region: <region of created lambda functions>
+role: <AWS execution role>
+mavenHome: <maven home path>
+awsAccessKeyId: 
+awsSecretAccessKey: 
