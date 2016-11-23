@@ -2,6 +2,7 @@ package ch.zhaw.file_operations;
 
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.AssignExpr;
 import japa.parser.ast.expr.FieldAccessExpr;
@@ -36,19 +37,17 @@ public class UtilityClass {
     private static CompilationUnit createInPutType(MethodEntity methodEntity){
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
         CompilationUnit inputCu = new CompilationUnit();
-        inputCu.setPackage(methodEntity.getClassEntity().getCu().getPackage());
-        inputCu.setImports(methodEntity.getClassEntity().getCu().getImports());
         ClassOrInterfaceDeclaration declaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "InputType");
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
         ASTHelper.addTypeDeclaration(inputCu, declaration);
-        ArrayList<String> filedsNames = new ArrayList<>();
+        ArrayList<String> fieldsNames = new ArrayList<>();
         if (fields != null){
             for (FieldDeclaration field:
                     fields) {
                 for (VariableDeclarator var :
                         field.getVariables()) {
-                    filedsNames.add(var.getId().getName());
+                    fieldsNames.add(var.getId().getName());
                 }
                 FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
                 ASTHelper.addMember(declaration, tmp);
@@ -70,7 +69,7 @@ public class UtilityClass {
                     parameters) {
                 FieldDeclaration fieldDeclaration =
                         new FieldDeclaration(ModifierSet.PUBLIC, param.getType(),
-                                getFieldNameFromParam(param.getId(), filedsNames));
+                                getFieldNameFromParam(param.getId(), fieldsNames));
                 ASTHelper.addMember(declaration, fieldDeclaration);
             }
         }
@@ -87,8 +86,6 @@ public class UtilityClass {
     }
     private static CompilationUnit createOutPutType(MethodEntity methodEntity){
         CompilationUnit outputCu = new CompilationUnit();
-        outputCu.setPackage(methodEntity.getClassEntity().getCu().getPackage());
-        outputCu.setImports(methodEntity.getClassEntity().getCu().getImports());
         ClassOrInterfaceDeclaration declaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "OutputType");
         ASTHelper.addTypeDeclaration(outputCu, declaration);
@@ -118,7 +115,32 @@ public class UtilityClass {
         return outputCu;
 
     }
-    public static CompilationUnit createGetSet(CompilationUnit compilationUnit){
+    private static PackageDeclaration generatePackage(MethodEntity methodEntity, boolean isForCloud){
+        CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
+        MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
+        String oldPackage = "." + compilationUnit.getPackage().getName().toString();
+        String methodPackage = methodDeclaration.getName();
+        if (methodDeclaration.getParameters() != null){
+            methodPackage = methodPackage + methodDeclaration.getParameters().size();
+        }
+        NameExpr packageNameExpr;
+        if (isForCloud){
+            packageNameExpr = new NameExpr(Constans.FUNCTION_PACKAGE);
+        }else{
+            packageNameExpr = new NameExpr("awsl" +
+                    oldPackage + "." + compilationUnit.getTypes().get(0).getName() + "." +
+                    methodPackage);
+        }
+        return new PackageDeclaration(packageNameExpr);
+    }
+    public static CompilationUnit createGetSet(CompilationUnit compilationUnit, MethodEntity methodEntity, boolean isForCloud){
+        if (isForCloud){
+            compilationUnit.setImports(methodEntity.getClassEntity().getCu().getImports());
+        }else{
+            compilationUnit.setImports(methodEntity.getClassEntity().getCu().getImports());
+        }
+        compilationUnit.setPackage(generatePackage(methodEntity, isForCloud));
+
         FieldsVisitor fieldsVisitor = new FieldsVisitor();
         fieldsVisitor.visit(compilationUnit, null);
         List<FieldDeclaration> fieldDeclarationList = fieldsVisitor.getFieldDeclarationList();
@@ -171,12 +193,10 @@ public class UtilityClass {
         }
         constructor.setParameters(constrParameters);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
-        String ss = new FieldsVisitor().s;
         return  compilationUnit;
     }
     private static class FieldsVisitor extends VoidVisitorAdapter {
         private List<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
-        public String s;
 
         @Override
         public void visit(FieldDeclaration n, Object arg) {
@@ -188,11 +208,11 @@ public class UtilityClass {
         }
     }
 
-    public static CompilationUnit getInputClass(MethodEntity methodEntity){
-        return createGetSet(createInPutType(methodEntity));
+    public static CompilationUnit getInputClass(MethodEntity methodEntity, boolean isForCloud){
+        return createGetSet(createInPutType(methodEntity), methodEntity, isForCloud);
     }
-    public static CompilationUnit getOutputClass(MethodEntity methodEntity){
-        return createGetSet(createOutPutType(methodEntity));
+    public static CompilationUnit getOutputClass(MethodEntity methodEntity, boolean isForCloud){
+        return createGetSet(createOutPutType(methodEntity), methodEntity, isForCloud);
     }
     public static List<FieldDeclaration> getOnlyStaticFields(List<FieldDeclaration> fields) {
         List<FieldDeclaration> staticFields = new ArrayList<>();

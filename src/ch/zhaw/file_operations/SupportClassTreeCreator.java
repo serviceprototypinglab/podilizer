@@ -48,8 +48,8 @@ public class SupportClassTreeCreator {
                                 "/src/awsl/" + packageName + "/" + className + "/" + functionName;
                         File file = new File(path);
                         file.mkdirs();
-                        writeToFile(path + "/OutputType.java", getOutputClass(methodEntity));
-                        writeToFile(path + "/InputType.java", getInputClass(methodEntity));
+                        writeToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
+                        writeToFile(path + "/InputType.java", getInputClass(methodEntity, false));
 
                         String pathLambda = "" + ConfigReader.getConfig().getNewPath() +
                                 "/LambdaProjects/" + packageName + "/" + className + "/" + functionName;
@@ -71,9 +71,11 @@ public class SupportClassTreeCreator {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        classPath = classPath + "/" + packageName;
-                        writeToFile(classPath + "/OutputType.java", getOutputClass(methodEntity));
-                        writeToFile(classPath + "/InputType.java", getInputClass(methodEntity));
+                        classPath = classPath + "/" + Constans.FUNCTION_PACKAGE + "/";
+                        File lambdaDir = new File(classPath);
+                        lambdaDir.mkdir();
+                        writeToFile(classPath + "/OutputType.java", getOutputClass(methodEntity, true));
+                        writeToFile(classPath + "/InputType.java", getInputClass(methodEntity, true));
                         writeToFile(classPath + "/LambdaFunction.java", projectCreator.createLambdaFunction(methodEntity));
                         ClassOrInterfaceDeclaration parentClass =
                                 (ClassOrInterfaceDeclaration)methodEntity.getMethodDeclaration().getParentNode();
