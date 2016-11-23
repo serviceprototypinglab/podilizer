@@ -2,6 +2,7 @@ package ch.zhaw.file_operations;
 
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.AssignExpr;
@@ -115,6 +116,23 @@ public class UtilityClass {
         return outputCu;
 
     }
+    public static List<ImportDeclaration> generateImportsList(MethodEntity methodEntity){
+        CompilationUnit cu = methodEntity.getClassEntity().getCu();
+        List<ImportDeclaration> imports;
+        if (methodEntity.getClassEntity().getCu().getImports() != null){
+            imports = new ArrayList<>(methodEntity.getClassEntity().getCu().getImports());
+        }else {
+            imports = new ArrayList<>();
+        }
+        if (cu.getPackage() != null){
+            String packageName  = cu.getPackage().getName().toString() + ".*";
+            ImportDeclaration selfImport = new ImportDeclaration(new NameExpr(packageName), false, false);
+            if (!imports.contains(selfImport)){
+                imports.add(selfImport);
+            }
+        }
+        return imports;
+    }
     private static PackageDeclaration generatePackage(MethodEntity methodEntity, boolean isForCloud){
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
@@ -135,9 +153,9 @@ public class UtilityClass {
     }
     public static CompilationUnit createGetSet(CompilationUnit compilationUnit, MethodEntity methodEntity, boolean isForCloud){
         if (isForCloud){
-            compilationUnit.setImports(methodEntity.getClassEntity().getCu().getImports());
+            compilationUnit.setImports(generateImportsList(methodEntity));
         }else{
-            compilationUnit.setImports(methodEntity.getClassEntity().getCu().getImports());
+            compilationUnit.setImports(generateImportsList(methodEntity));
         }
         compilationUnit.setPackage(generatePackage(methodEntity, isForCloud));
 

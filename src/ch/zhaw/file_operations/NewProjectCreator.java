@@ -5,6 +5,7 @@ import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.Node;
+import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
@@ -59,18 +60,30 @@ public class NewProjectCreator {
 
     public CompilationUnit createLambdaFunction(MethodEntity methodEntity){
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
+        //System.out.println(cu.getImports());
         List<FieldDeclaration> staticFields = new ArrayList<>();
         changeFiledCalls(methodEntity.getMethodDeclaration().getBody());
         CompilationUnit newCU = new CompilationUnit();
-        List<ImportDeclaration> imports = methodEntity.getClassEntity().getCu().getImports();
-        if (imports == null){
+
+        List<ImportDeclaration> imports;
+        if (methodEntity.getClassEntity().getCu().getImports() != null){
+            imports = new ArrayList<>(methodEntity.getClassEntity().getCu().getImports());
+        }else {
             imports = new ArrayList<>();
         }
+
         if (!imports.containsAll(createImports())){
             imports.addAll(createImports());
         }
+        if (cu.getPackage() != null){
+            String packageName  = cu.getPackage().getName().toString() + ".*";
+            ImportDeclaration selfImport = new ImportDeclaration(new NameExpr(packageName), false, false);
+            if (!imports.contains(selfImport)){
+                imports.add(selfImport);
+            }
+        }
         newCU.setImports(imports);
-        newCU.setPackage(methodEntity.getClassEntity().getCu().getPackage());
+        newCU.setPackage(new PackageDeclaration(new NameExpr(Constans.FUNCTION_PACKAGE)));
 
         /*
         ClassOrInterfaceDeclaration classDeclaration =
