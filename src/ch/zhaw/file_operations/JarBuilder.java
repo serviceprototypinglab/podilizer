@@ -46,7 +46,7 @@ public class JarBuilder {
         if (!dir.exists()){
             dir.mkdir();
         }else{
-            System.err.println("Failed to create a directory");
+            //
         }
     }
     public String createProjTree(String path) throws IOException {

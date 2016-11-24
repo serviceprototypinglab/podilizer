@@ -17,9 +17,18 @@ public class InvokeMethodsWriter {
             CompilationUnit cu = classEntity.getCu();
             InvokeClassTranslator invokeClassTranslator = new InvokeClassTranslator(cu);
             invokeClassTranslator.addBufferByteReaderMethod();
-            System.out.println(cu);
             invokeClassTranslator.generateImports();
+            List<MethodEntity> methodEntityList = classEntity.getFunctions();
+            for (MethodEntity methodEntity :
+                    methodEntityList) {
+                //if the method has more then one lien of code
+                if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1){
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity);
+                    invokeMethodCreator.createMethodInvoker();
+                }
+            }
             UtilityClass.writeCuToFile(classEntity.getPath().toString(), invokeClassTranslator.getCompilationUnit());
+
         }
     }
 

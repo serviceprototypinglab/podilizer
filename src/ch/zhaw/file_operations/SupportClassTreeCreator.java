@@ -29,6 +29,8 @@ public class SupportClassTreeCreator {
                     methodEntityList) {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)){
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
+
+                    //if the method has more then one lien of code
                     int methodBodyLength = methodDeclaration.getBody().getStmts().size();
                     if (methodBodyLength > 1){
                         String packageName = "";

@@ -24,7 +24,6 @@ import static ch.zhaw.file_operations.UtilityClass.*;
 public class NewProjectCreator {
     private String newPath;
     private String oldPath;
-    private static String testField;
 
     public NewProjectCreator(){
         newPath = ConfigReader.getConfig().getNewPath();
@@ -33,9 +32,15 @@ public class NewProjectCreator {
 
     void copyProject() throws IOException {
         FileUtils.copyDirectoryStructure(new File(ConfigReader.getConfig().getPath()), new File(newPath));
+        addLibs();
         JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
         InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew);
         invokeMethodsWriter.write();
+    }
+    private void addLibs() throws IOException {
+        File libDir = new File(newPath + "/libs");
+        libDir.mkdir();
+        FileUtils.copyDirectoryStructure(new File("additional/libs/"), new File(newPath + "/libs/"));
     }
     void create() throws TooManyMainMethodsException {
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
@@ -63,7 +68,7 @@ public class NewProjectCreator {
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         //System.out.println(cu.getImports());
         List<FieldDeclaration> staticFields = new ArrayList<>();
-        changeFiledCalls(methodEntity.getMethodDeclaration().getBody());
+        //changeFiledCalls(methodEntity.getMethodDeclaration().getBody());
         CompilationUnit newCU = new CompilationUnit();
 
         List<ImportDeclaration> imports;

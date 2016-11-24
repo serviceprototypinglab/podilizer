@@ -6,6 +6,8 @@ import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.stmt.CatchClause;
+import japa.parser.ast.stmt.TryStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 
 import java.util.ArrayList;
@@ -15,22 +17,28 @@ import static ch.zhaw.file_operations.UtilityClass.firstLetterToUpperCase;
 import static ch.zhaw.file_operations.UtilityClass.getOnlyStaticFields;
 
 public class InvokeMethodCreator {
-    public void createMethodInvoker(MethodEntity methodEntity) {
+    private MethodEntity methodEntity;
+
+    public InvokeMethodCreator(MethodEntity methodEntity) {
+        this.methodEntity = methodEntity;
+    }
+
+    public void createMethodInvoker() {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         BlockStmt bodyBlock = new BlockStmt();
-        NameExpr accessIDKeyVarExpr = new NameExpr("static final String awsAccessIdKey = \"" +
+        NameExpr accessIDKeyVarExpr = new NameExpr("String awsAccessKeyId = \"" +
                 ConfigReader.getConfig().getAwsAccessKeyId() + "\"");
-        NameExpr accessSecretKeyVarExpr = new NameExpr("static final String awsSecretAccessKey = \"" +
+        NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"" +
                 ConfigReader.getConfig().getAwsSecretAccessKey() + "\"");
-        NameExpr regionNameVarExpr = new NameExpr("static final String regionName = \"" +
+        NameExpr regionNameVarExpr = new NameExpr("String regionName = \"" +
                 ConfigReader.getConfig().getRegion() + "\"");
         String functionName = "" + methodEntity.getClassEntity().getCu().getPackage().getName() +
                 methodEntity.getClassEntity().getCu().getTypes().get(0).getName() +
                 methodEntity.getMethodDeclaration().getName();
-        NameExpr functionNameVarExpr = new NameExpr("static final String functionName = \"" + functionName + "\"");
-        NameExpr regionVarExpr = new NameExpr("static Region region");
-        NameExpr credentialsVarExpr = new NameExpr("static AWSCredentials credentials");
-        NameExpr lambdaClientVarExpr = new NameExpr("static AWSLambdaClient lambdaClient");
+        NameExpr functionNameVarExpr = new NameExpr("String functionName = \"" + functionName + "\"");
+        NameExpr regionVarExpr = new NameExpr("Region region");
+        NameExpr credentialsVarExpr = new NameExpr("AWSCredentials credentials");
+        NameExpr lambdaClientVarExpr = new NameExpr("AWSLambdaClient lambdaClient");
         NameExpr credentialsCreate = new NameExpr("credentials = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)");
         NameExpr lambdaClientCreate = new NameExpr("lambdaClient = (credentials == null) ? new AWSLambdaClient()" +
                 " : new AWSLambdaClient(credentials)");
@@ -70,13 +78,20 @@ public class InvokeMethodCreator {
                 "            json = objectMapper.writeValueAsString(inputType);\n" +
                 "        } catch (JsonProcessingException e) {\n" +
                 "            e.printStackTrace();\n" +
-                "        }");
-        NameExpr invokeInit = new NameExpr("InvokeRequest invokeRequest = new InvokeRequest();\n" +
-                "            invokeRequest.setFunctionName(FunctionName);\n" +
-                "            invokeRequest.setPayload(inputType)");
-        NameExpr invoke = new NameExpr(getSupportClassPackage(methodEntity) + "OutputType outputType = byteBufferToString(\n" +
+                "        }\n" +
+                "       " + getSupportClassPackage(methodEntity) + "OutputType outputType = null");
+        NameExpr invokeInit = new NameExpr("try {\n" +
+                "            InvokeRequest invokeRequest = new InvokeRequest();\n" +
+                "            invokeRequest.setFunctionName(functionName);\n" +
+                "            invokeRequest.setPayload(json)");
+        NameExpr invoke = new NameExpr("outputType = objectMapper.readValue(byteBufferToString(\n" +
                 "                    lambdaClient.invoke(invokeRequest).getPayload(),\n" +
-                "                    Charset.forName(\"UTF-8\"),logger)");
+                "                    Charset.forName(\"UTF-8\"))," + getSupportClassPackage(methodEntity) + "OutputType.class)");
+        NameExpr tryEnd = new NameExpr("} catch(Exception e) {\n" +
+                "          \n" +
+                "            }");
+
+
         ASTHelper.addStmt(bodyBlock, accessIDKeyVarExpr);
         ASTHelper.addStmt(bodyBlock, accessSecretKeyVarExpr);
         ASTHelper.addStmt(bodyBlock, regionNameVarExpr);
@@ -92,11 +107,12 @@ public class InvokeMethodCreator {
         ASTHelper.addStmt(bodyBlock, jsonCreate);
         ASTHelper.addStmt(bodyBlock, invokeInit);
         ASTHelper.addStmt(bodyBlock, invoke);
+        ASTHelper.addStmt(bodyBlock, tryEnd);
         for (FieldDeclaration staticField:
                 allFields){
             for (VariableDeclarator var:
                     staticField.getVariables()) {
-                NameExpr staticFieldVar = new NameExpr(var.getId().getName());
+                NameExpr staticFieldVar = new NameExpr("this." + var.getId().getName());
                 MethodCallExpr methodCallExpr =
                         new MethodCallExpr(new NameExpr("outputType"), "get" +
                                 firstLetterToUpperCase(var.getId().getName()));
