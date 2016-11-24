@@ -17,7 +17,6 @@ import static ch.zhaw.file_operations.UtilityClass.getOnlyStaticFields;
 public class InvokeMethodCreator {
     public void createMethodInvoker(MethodEntity methodEntity) {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
-        compilationUnit.setImports(createImports(methodEntity.getClassEntity()));
         BlockStmt bodyBlock = new BlockStmt();
         NameExpr accessIDKeyVarExpr = new NameExpr("static final String awsAccessIdKey = \"" +
                 ConfigReader.getConfig().getAwsAccessKeyId() + "\"");
@@ -113,65 +112,7 @@ public class InvokeMethodCreator {
             ASTHelper.addStmt(bodyBlock, returnExpr);
         }
     }
-    private List<ImportDeclaration> createImports(ClassEntity classEntity) {
-        ArrayList<ImportDeclaration> imports = new ArrayList<>();
-        ImportDeclaration imd1 = new ImportDeclaration();
-        imd1.setName(new NameExpr("com.amazonaws.auth.AWSCredentials"));
-        ImportDeclaration imd2 = new ImportDeclaration();
-        imd2.setName(new NameExpr("com.amazonaws.auth.BasicAWSCredentials"));
-        ImportDeclaration imd3 = new ImportDeclaration();
-        imd3.setName(new NameExpr("com.amazonaws.regions.Region"));
-        ImportDeclaration imd4 = new ImportDeclaration();
-        imd4.setName(new NameExpr("com.amazonaws.regions.Regions"));
-        ImportDeclaration imd5 = new ImportDeclaration();
-        imd5.setName(new NameExpr("com.amazonaws.services.lambda.AWSLambdaClient"));
-        ImportDeclaration imd6 = new ImportDeclaration();
-        imd6.setName(new NameExpr("com.amazonaws.services.lambda.model.InvokeRequest"));
-        ImportDeclaration imd7 = new ImportDeclaration();
-        imd7.setName(new NameExpr("com.fasterxml.jackson.core.JsonProcessingException"));
-        ImportDeclaration imd8 = new ImportDeclaration();
-        imd8.setName(new NameExpr("com.fasterxml.jackson.databind.ObjectMapper"));
-        imports.add(imd1);
-        imports.add(imd2);
-        imports.add(imd3);
-        imports.add(imd4);
-        imports.add(imd5);
-        imports.add(imd6);
-        imports.add(imd7);
-        imports.add(imd8);
-        List<ImportDeclaration> oldImports = classEntity.getCu().getImports();
-        for (ImportDeclaration importD :
-                oldImports) {
-            if (!imports.contains(importD)) {
-                imports.add(importD);
-            }
-        }
-        return imports;
-    }
-    public CompilationUnit addBufferByteReaderMethod(CompilationUnit compilationUnit){
-        ClassOrInterfaceType type = new ClassOrInterfaceType("String");
-        MethodDeclaration declaration =
-                new MethodDeclaration(ModifierSet.STATIC + ModifierSet.PUBLIC, type, "byteBufferToString");
-        ClassOrInterfaceType param1Type = new ClassOrInterfaceType("ByteBuffer");
-        Parameter param1 = new Parameter(param1Type, new VariableDeclaratorId("buffer"));
-        ClassOrInterfaceType param2Type = new ClassOrInterfaceType("Charset");
-        Parameter param2 = new Parameter(param2Type, new VariableDeclaratorId("charset"));
-        ASTHelper.addParameter(declaration, param1);
-        ASTHelper.addParameter(declaration, param2);
-        BlockStmt methodBodyStmt = new BlockStmt();
-        NameExpr bodyString = new NameExpr("byte[] bytes;\n" +
-                "        if (buffer.hasArray()) {\n" +
-                "            bytes = buffer.array();\n" +
-                "        } else {\n" +
-                "            bytes = new byte[buffer.remaining()];\n" +
-                "            buffer.get(bytes);\n" +
-                "        }\n" +
-                "        return new String(bytes, charset)");
-        ASTHelper.addStmt(methodBodyStmt, bodyString);
-        declaration.setBody(methodBodyStmt);
-        ASTHelper.addMember(compilationUnit.getTypes().get(0), declaration);
-        return compilationUnit;
-    }
+
     private String getSupportClassPackage(MethodEntity methodEntity){
         String result = "awsl.";
         String packageStr = methodEntity.getClassEntity().getCu().getPackage().getName().toString();

@@ -3,17 +3,15 @@ package ch.zhaw.file_operations;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.expr.ObjectCreationExpr;
-import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.util.List;
 
 import static ch.zhaw.file_operations.UtilityClass.getInputClass;
 import static ch.zhaw.file_operations.UtilityClass.getOutputClass;
-import static ch.zhaw.file_operations.UtilityClass.writeToFile;
+import static ch.zhaw.file_operations.UtilityClass.writeCuToFile;
 
 public class SupportClassTreeCreator {
     JavaProjectEntity projectEntity;
@@ -29,7 +27,6 @@ public class SupportClassTreeCreator {
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
             for (MethodEntity methodEntity :
                     methodEntityList) {
-                ObjectCreationExpr creationExpr;
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)){
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
                     int methodBodyLength = methodDeclaration.getBody().getStmts().size();
@@ -48,8 +45,8 @@ public class SupportClassTreeCreator {
                                 "/src/awsl/" + packageName + "/" + className + "/" + functionName;
                         File file = new File(path);
                         file.mkdirs();
-                        writeToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
-                        writeToFile(path + "/InputType.java", getInputClass(methodEntity, false));
+                        writeCuToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
+                        writeCuToFile(path + "/InputType.java", getInputClass(methodEntity, false));
 
                         String pathLambda = "" + ConfigReader.getConfig().getNewPath() +
                                 "/LambdaProjects/" + packageName + "/" + className + "/" + functionName;
@@ -71,12 +68,12 @@ public class SupportClassTreeCreator {
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
-                        classPath = classPath + "/" + Constans.FUNCTION_PACKAGE + "/";
+                        classPath = classPath + "/" + Constants.FUNCTION_PACKAGE + "/";
                         File lambdaDir = new File(classPath);
                         lambdaDir.mkdir();
-                        writeToFile(classPath + "/OutputType.java", getOutputClass(methodEntity, true));
-                        writeToFile(classPath + "/InputType.java", getInputClass(methodEntity, true));
-                        writeToFile(classPath + "/LambdaFunction.java", projectCreator.createLambdaFunction(methodEntity));
+                        writeCuToFile(classPath + "/OutputType.java", getOutputClass(methodEntity, true));
+                        writeCuToFile(classPath + "/InputType.java", getInputClass(methodEntity, true));
+                        writeCuToFile(classPath + "/LambdaFunction.java", projectCreator.createLambdaFunction(methodEntity));
                         ClassOrInterfaceDeclaration parentClass =
                                 (ClassOrInterfaceDeclaration)methodEntity.getMethodDeclaration().getParentNode();
                         System.out.println(parentClass.getName());

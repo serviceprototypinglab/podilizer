@@ -4,7 +4,6 @@ import ch.zhaw.exceptions.TooManyMainMethodsException;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
-import japa.parser.ast.Node;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
@@ -34,10 +33,12 @@ public class NewProjectCreator {
 
     void copyProject() throws IOException {
         FileUtils.copyDirectoryStructure(new File(ConfigReader.getConfig().getPath()), new File(newPath));
+        JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
+        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew);
+        invokeMethodsWriter.write();
     }
     void create() throws TooManyMainMethodsException {
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
-        JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
         SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld);
         classTreeCreator.create();
 
@@ -83,7 +84,7 @@ public class NewProjectCreator {
             }
         }
         newCU.setImports(imports);
-        newCU.setPackage(new PackageDeclaration(new NameExpr(Constans.FUNCTION_PACKAGE)));
+        newCU.setPackage(new PackageDeclaration(new NameExpr(Constants.FUNCTION_PACKAGE)));
 
         /*
         ClassOrInterfaceDeclaration classDeclaration =

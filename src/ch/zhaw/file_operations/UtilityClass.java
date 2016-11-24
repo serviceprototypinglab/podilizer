@@ -20,7 +20,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class UtilityClass {
-    public static void writeToFile(String path, CompilationUnit cu){
+    public static void writeCuToFile(String path, CompilationUnit cu){
         try {
             PrintWriter writer = new PrintWriter(path, "UTF-8");
             writer.print(cu);
@@ -143,7 +143,7 @@ public class UtilityClass {
         }
         NameExpr packageNameExpr;
         if (isForCloud){
-            packageNameExpr = new NameExpr(Constans.FUNCTION_PACKAGE);
+            packageNameExpr = new NameExpr(Constants.FUNCTION_PACKAGE);
         }else{
             packageNameExpr = new NameExpr("awsl" +
                     oldPackage + "." + compilationUnit.getTypes().get(0).getName() + "." +
