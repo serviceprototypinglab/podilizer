@@ -1,0 +1,8 @@
+path: /home/dord/service_tooling_initiative
+newPath: /home/dord/IdeaProjects/translatorJavaOutput
+fileName: file
+region: region
+role: <AWS execution role>
+mavenHome: /usr/share/maven
+awsAccessKeyId: awsAccessKeyId
+awsSecretAccessKey: awsSecretAccessKey

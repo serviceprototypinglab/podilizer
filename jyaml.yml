@@ -1,8 +1,0 @@
-path: <path of the translated project>
-newPath: <path for the new project>
-fileName: <filename>
-region: <region of created lambda functions>
-role: <AWS execution role>
-mavenHome: <maven home path>
-awsAccessKeyId:
-awsSecretAccessKey: 
