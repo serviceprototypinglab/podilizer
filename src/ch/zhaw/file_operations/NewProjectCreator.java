@@ -31,7 +31,8 @@ public class NewProjectCreator {
     }
 
     void copyProject() throws IOException {
-        FileUtils.copyDirectoryStructure(new File(ConfigReader.getConfig().getPath()), new File(newPath));
+        FileUtils.deleteDirectory(newPath);
+        FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
         addLibs();
         JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
         InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew);

@@ -55,7 +55,7 @@ public class InvokeMethodCreator {
                 allFields) {
             for (VariableDeclarator var :
                     field.getVariables()) {
-                arguments.add(new NameExpr(var.getId().getName()));
+                arguments.add(new NameExpr("this." +  var.getId().getName()));
             }
         }
         List<Parameter> params = methodEntity.getMethodDeclaration().getParameters();
