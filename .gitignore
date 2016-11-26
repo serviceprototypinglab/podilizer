@@ -5,5 +5,6 @@ service_tooling_initiative.iml
 .idea/copyright/~.xml
 .idea/dictionaries/~.xml
 .idea/libraries/~.xml
+.idea/
 out/
 out
