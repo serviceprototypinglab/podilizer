@@ -46,7 +46,7 @@ public class NewProjectCreator {
     void create() throws TooManyMainMethodsException {
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
         SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld);
-        classTreeCreator.create();
+        classTreeCreator.build();
 
         /*
         JarUploader jarUploader = new JarUploader(ConfigReader.getConfig().getFileName(), "/home/dord/LambdaA.zip", "example.LambdaA::handleRequest", 30, 1024);

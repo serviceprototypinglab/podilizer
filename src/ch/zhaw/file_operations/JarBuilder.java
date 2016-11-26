@@ -68,11 +68,6 @@ public class JarBuilder {
     }
     public void createJar(String path){
         try {
-            createProjTree(path);
-        } catch (IOException e) {
-            e.printStackTrace();
-        }
-        try {
             mvnBuild(path);
         } catch (MavenInvocationException e) {
             e.printStackTrace();
