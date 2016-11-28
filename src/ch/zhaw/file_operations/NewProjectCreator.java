@@ -74,6 +74,9 @@ public class NewProjectCreator {
                 imports.add(selfImport);
             }
         }
+//        if (translatedCu.getImports() != null){
+//            imports.addAll(translatedCu.getImports());
+//        }
         newCU.setImports(imports);
         newCU.setPackage(new PackageDeclaration(new NameExpr(Constants.FUNCTION_PACKAGE)));
 
@@ -154,10 +157,33 @@ public class NewProjectCreator {
         for (BodyDeclaration member :
                 extraClassMembers) {
             if (!(member instanceof FieldDeclaration) & !(member instanceof ConstructorDeclaration)){
-                ASTHelper.addMember(classDeclaration, member);
+                if (member instanceof MethodDeclaration){
+                    MethodDeclaration selfMethod = (MethodDeclaration)member;
+                    int params1 = 0;
+                    if (selfMethod.getParameters() != null){
+                        params1 += selfMethod.getParameters().size();
+                    }
+                    int params2 = 0;
+                    if (methodEntity.getMethodDeclaration().getParameters() != null){
+                        params2 += methodEntity.getMethodDeclaration().getParameters().size();
+                    }
+                    boolean isMatched = selfMethod.getName().equals(methodEntity.getMethodDeclaration().getName()) &
+                            params1 == params2;
+                    if (!isMatched){
+                        ASTHelper.addMember(classDeclaration, member);
+                    }
+
+                }else {
+                    ASTHelper.addMember(classDeclaration, member);
+                }
+
             }
         }
+        InvokeClassTranslator invokeClassTranslator = new InvokeClassTranslator(newCU);
+        invokeClassTranslator.generateImports();
         //System.out.println(newCU);
+        System.out.println(methodEntity.getMethodDeclaration());
+        ASTHelper.addMember(classDeclaration, methodEntity.getMethodDeclaration());
         return newCU;
     }
     private BlockStmt changeFiledCalls(BlockStmt blockStmt){

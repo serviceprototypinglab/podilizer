@@ -23,6 +23,12 @@ public class ClassEntity implements Serializable{;
     private List<FieldDeclaration> fields;
     private CompilationUnit cu;
     //transforms List<MethodDeclaration> into list<MethodEntity>
+    public ClassEntity(ClassEntity classEntity){
+        this.path = classEntity.getPath();
+        this.fields = classEntity.getFields();
+        this.functions = classEntity.getFunctions();
+        this.cu = classEntity.getCu();
+    }
     private List<MethodEntity> listMethodEntityTransformer(List<MethodDeclaration> inputList){
         List<MethodEntity> result = new ArrayList<>();
         Iterator<MethodDeclaration> iterator = inputList.iterator();

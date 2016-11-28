@@ -39,13 +39,15 @@ public class SupportClassTreeCreator {
         }
         List<String> lambdaPathList = new ArrayList<>();
         List<ClassEntity> classEntityList = excludeInners(projectEntity.getClassEntities());
-        List<ClassEntity> copyClassList = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath())).getClassEntities();
+//        List<ClassEntity> copyClassList = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath())).getClassEntities();
+        List<ClassEntity> copyClassList = excludeInners(new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath())).getClassEntities());
+
         int i = 0;
         for (ClassEntity classEntity :
                 classEntityList) {
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
             CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i));
-            System.out.println(classEntity.getCu());
+            System.out.println(translatedClass);
             for (MethodEntity methodEntity :
                     methodEntityList) {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)){
@@ -113,7 +115,7 @@ public class SupportClassTreeCreator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            //jarBuilder.createJar(path);
+//            jarBuilder.createJar(path);
         }
     }
     /**

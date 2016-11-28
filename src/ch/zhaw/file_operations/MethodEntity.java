@@ -16,8 +16,6 @@ public class MethodEntity implements Serializable{
     private List<MethodCallExpr> methodCallExprs;
     private ClassEntity classEntity;
 
-
-
     public List<MethodCallExpr> getMethodCallExprs() {
         return methodCallExprs;
     }
