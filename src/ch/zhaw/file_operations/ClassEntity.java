@@ -10,19 +10,18 @@ import japa.parser.ast.visitor.VoidVisitorAdapter;
 import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.Path;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
 
-public class ClassEntity {;
+public class ClassEntity implements Serializable{;
     private Path path;
     private List<MethodEntity> functions;
     private List<FieldDeclaration> fields;
     private CompilationUnit cu;
-
-
     //transforms List<MethodDeclaration> into list<MethodEntity>
     private List<MethodEntity> listMethodEntityTransformer(List<MethodDeclaration> inputList){
         List<MethodEntity> result = new ArrayList<>();

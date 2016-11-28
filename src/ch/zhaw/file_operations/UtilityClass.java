@@ -3,6 +3,7 @@ package ch.zhaw.file_operations;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
+import japa.parser.ast.Node;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.AssignExpr;
@@ -13,8 +14,7 @@ import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
-import java.io.IOException;
-import java.io.PrintWriter;
+import java.io.*;
 import java.util.ArrayList;
 import java.util.LinkedList;
 import java.util.List;
@@ -242,4 +242,76 @@ public class UtilityClass {
         }
         return staticFields;
     }
+    public static CompilationUnit translateClass(ClassEntity classEntity){
+//        ClassEntity clonedClassEntity = (ClassEntity) deepClone(classEntity);
+//        CompilationUnit cu = clonedClassEntity.getCu();
+        CompilationUnit cu = classEntity.getCu();
+        ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
+        int i = 0;
+        for (Node node :
+                cu.getTypes().get(0).getChildrenNodes()) {
+            if (node instanceof ClassOrInterfaceDeclaration){
+                i++;
+            }
+        }
+        if (!declaration.isInterface() & i == 0){
+            InvokeClassTranslator invokeClassTranslator = new InvokeClassTranslator(cu);
+            invokeClassTranslator.addBufferByteReaderMethod();
+            invokeClassTranslator.generateImports();
+            List<MethodEntity> methodEntityList = classEntity.getFunctions();
+            for (MethodEntity methodEntity :
+                    methodEntityList) {
+                //if the method has more then one line of code
+                if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1){
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity);
+                    invokeMethodCreator.createMethodInvoker();
+                }
+            }
+            return invokeClassTranslator.getCompilationUnit();
+        }
+        return cu;
+    }
+    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod){
+        CompilationUnit cu = classEntity.getCu();
+        ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
+        int i = 0;
+        for (Node node :
+                cu.getTypes().get(0).getChildrenNodes()) {
+            if (node instanceof ClassOrInterfaceDeclaration){
+                i++;
+            }
+        }
+        if (!declaration.isInterface() & i == 0){
+            InvokeClassTranslator invokeClassTranslator = new InvokeClassTranslator(cu);
+            invokeClassTranslator.addBufferByteReaderMethod();
+            invokeClassTranslator.generateImports();
+            List<MethodEntity> methodEntityList = classEntity.getFunctions();
+            for (MethodEntity methodEntity :
+                    methodEntityList) {
+                //if the method has more then one line of code
+                if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
+                        !methodEntity.getMethodDeclaration().equals(unchangedMethod.getMethodDeclaration())){
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity);
+                    invokeMethodCreator.createMethodInvoker();
+                }
+            }
+            return invokeClassTranslator.getCompilationUnit();
+        }
+        return cu;
+    }
+    public static Object deepClone(Object object) {
+        try {
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            ObjectOutputStream oos = new ObjectOutputStream(baos);
+            oos.writeObject(object);
+            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
+            ObjectInputStream ois = new ObjectInputStream(bais);
+            return ois.readObject();
+        }
+        catch (Exception e) {
+            e.printStackTrace();
+            return null;
+        }
+    }
+
 }

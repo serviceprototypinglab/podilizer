@@ -3,6 +3,7 @@ package ch.zhaw.file_operations;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
+import japa.parser.ast.Node;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
@@ -121,7 +122,36 @@ public class InvokeMethodCreator {
 
             }
         }
-        methodEntity.getMethodDeclaration().setBody(bodyBlock);
+        MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
+        methodDeclaration.setBody(bodyBlock);
+//        MethodDeclaration resultFunction;
+//        if (methodDeclaration.getParameters() != null){
+//            resultFunction = new MethodDeclaration(methodDeclaration.getModifiers(), methodDeclaration.getType(),
+//                    methodDeclaration.getName(), methodDeclaration.getParameters());
+//        }else {
+//            resultFunction = new MethodDeclaration(methodDeclaration.getModifiers(), methodDeclaration.getType(),
+//                    methodDeclaration.getName());
+//        }
+//        resultFunction.setBody(bodyBlock);
+        int modifiers = methodDeclaration.getModifiers();
+        if (!ModifierSet.isPublic(modifiers)){
+            if (ModifierSet.isPrivate(modifiers)){
+                ModifierSet.removeModifier(modifiers, ModifierSet.PRIVATE);
+                ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                methodDeclaration.setModifiers(modifiers);
+            }else{
+                if (ModifierSet.isProtected(modifiers)){
+                    ModifierSet.removeModifier(modifiers, ModifierSet.PROTECTED);
+                    ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    methodDeclaration.setModifiers(modifiers);
+                }else{
+                    ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    methodDeclaration.setModifiers(modifiers);
+                }
+            }
+        }
+
+
         if (!methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
             NameExpr returnExpr = new NameExpr("return outputType.get" +
                     firstLetterToUpperCase(methodEntity.getMethodDeclaration().getName() + "Result()"));

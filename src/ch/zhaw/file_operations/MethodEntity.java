@@ -6,11 +6,12 @@ import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.ObjectCreationExpr;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
+import java.io.Serializable;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MethodEntity {
+public class MethodEntity implements Serializable{
     private MethodDeclaration methodDeclaration;
     private List<MethodCallExpr> methodCallExprs;
     private ClassEntity classEntity;
@@ -65,5 +66,4 @@ public class MethodEntity {
             return methodCallExprs;
         }
     }
-
 }

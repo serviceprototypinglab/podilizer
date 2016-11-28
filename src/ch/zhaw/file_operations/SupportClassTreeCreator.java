@@ -11,6 +11,7 @@ import org.codehaus.plexus.util.FileUtils;
 import java.io.File;
 import java.io.IOException;
 import java.net.URISyntaxException;
+import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -31,11 +32,20 @@ public class SupportClassTreeCreator {
     }
 
     private List<String> create(){
+        try {
+            projectEntity = (JavaProjectEntity)projectEntity.clone();
+        } catch (CloneNotSupportedException e) {
+            e.printStackTrace();
+        }
         List<String> lambdaPathList = new ArrayList<>();
         List<ClassEntity> classEntityList = excludeInners(projectEntity.getClassEntities());
+        List<ClassEntity> copyClassList = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath())).getClassEntities();
+        int i = 0;
         for (ClassEntity classEntity :
                 classEntityList) {
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
+            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i));
+            System.out.println(classEntity.getCu());
             for (MethodEntity methodEntity :
                     methodEntityList) {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)){
@@ -79,11 +89,14 @@ public class SupportClassTreeCreator {
                         lambdaDir.mkdir();
                         writeCuToFile(lambdaPath + "/OutputType.java", getOutputClass(methodEntity, true));
                         writeCuToFile(lambdaPath + "/InputType.java", getInputClass(methodEntity, true));
-                        writeCuToFile(lambdaPath + "/LambdaFunction.java", projectCreator.createLambdaFunction(methodEntity));
+                        CompilationUnit cuToWrite = projectCreator.createLambdaFunction(methodEntity,
+                                translatedClass);
+                        writeCuToFile(lambdaPath + "/LambdaFunction.java", cuToWrite);
                     }
                 }
 
             }
+            i++;
         }
         return lambdaPathList;
     }
@@ -100,14 +113,7 @@ public class SupportClassTreeCreator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            jarBuilder.createJar(path);
-//            try {
-//                jarBuilder.mvnBuild(path);
-//            } catch (MavenInvocationException e) {
-//                e.printStackTrace();
-//            } catch (URISyntaxException e) {
-//                e.printStackTrace();
-//            }
+            //jarBuilder.createJar(path);
         }
     }
     /**

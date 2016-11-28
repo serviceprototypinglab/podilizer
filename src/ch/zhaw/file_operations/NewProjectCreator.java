@@ -30,13 +30,14 @@ public class NewProjectCreator {
         oldPath = ConfigReader.getConfig().getPath();
     }
 
-    void copyProject() throws IOException {
+    void copyProject() throws IOException, TooManyMainMethodsException {
         FileUtils.deleteDirectory(newPath);
         FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
         addLibs();
         JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
         InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew);
         invokeMethodsWriter.write();
+        create();
     }
     private void addLibs() throws IOException {
         File libDir = new File(newPath + "/libs");
@@ -48,24 +49,8 @@ public class NewProjectCreator {
         SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld);
         classTreeCreator.build();
 
-        /*
-        JarUploader jarUploader = new JarUploader(ConfigReader.getConfig().getFileName(), "/home/dord/LambdaA.zip", "example.LambdaA::handleRequest", 30, 1024);
-        jarUploader.uploadFunction();
-
-            System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
-            System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getClassEntity().getPath());
-
-            InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator();
-            invokeMethodCreator.createMethodInvoker(javaProjectEntityOld.getStaticMethods().get(3));
-            System.out.println(javaProjectEntityOld.getStaticMethods().get(3).getMethodDeclaration());
-            System.out.println("=====================================================================================");
-            System.out.println(invokeMethodCreator.addBufferByteReaderMethod(javaProjectEntityOld.getStaticMethods().get(3).getClassEntity().getCu()));
-            */
-            //jarBuilder.mvnBuild("LambdaProjects/NewProjectCreatorAWSFfirstLetterToUpperCase/");
-
     }
-
-    public CompilationUnit createLambdaFunction(MethodEntity methodEntity){
+    public CompilationUnit createLambdaFunction(MethodEntity methodEntity, CompilationUnit translatedCu){
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         //System.out.println(cu.getImports());
         List<FieldDeclaration> staticFields = new ArrayList<>();
@@ -164,6 +149,15 @@ public class NewProjectCreator {
             ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity, fields));
         }
         method.setBody(bodyBlock);
+
+        List<BodyDeclaration> extraClassMembers = translatedCu.getTypes().get(0).getMembers();
+        for (BodyDeclaration member :
+                extraClassMembers) {
+            if (!(member instanceof FieldDeclaration) & !(member instanceof ConstructorDeclaration)){
+                ASTHelper.addMember(classDeclaration, member);
+            }
+        }
+        //System.out.println(newCU);
         return newCU;
     }
     private BlockStmt changeFiledCalls(BlockStmt blockStmt){

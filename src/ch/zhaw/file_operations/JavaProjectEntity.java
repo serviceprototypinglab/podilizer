@@ -5,13 +5,14 @@ import japa.parser.ast.body.ModifierSet;
 import japa.parser.ast.expr.NameExpr;
 
 import java.io.IOException;
+import java.io.Serializable;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class JavaProjectEntity {
+public class JavaProjectEntity implements Cloneable{
     private String pattern = "*.java";
     private Path location;
     private List<ClassEntity> classEntities;
@@ -125,5 +126,10 @@ public class JavaProjectEntity {
                 "location=" + location +
                 ", classEntities=" + classEntities +
                 '}';
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return super.clone();
     }
 }
