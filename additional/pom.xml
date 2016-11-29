@@ -19,6 +19,13 @@
       <artifactId>aws-lambda-java-core</artifactId>
       <version>1.1.0</version>
     </dependency>
+
+    <dependency>
+      <groupId>com.amazonaws</groupId>
+      <artifactId>aws-java-sdk-lambda</artifactId>
+      <version>1.11.60</version>
+    </dependency>
+
     <dependency>
       <groupId>com.google.code.javaparser</groupId>
       <artifactId>javaparser</artifactId>
@@ -49,12 +56,6 @@
       <artifactId>json-simple</artifactId>
       <version>1.1</version>
     </dependency>
-    <dependency>
-      <groupId>com.amazonaws</groupId>
-      <artifactId>aws-java-sdk</artifactId>
-      <version>1.11.37</version>
-    </dependency>
-
   </dependencies>
 
   <build>
