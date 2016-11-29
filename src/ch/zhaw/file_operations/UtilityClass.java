@@ -12,6 +12,7 @@ import japa.parser.ast.expr.FieldAccessExpr;
 import japa.parser.ast.expr.NameExpr;
 import japa.parser.ast.expr.ThisExpr;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
@@ -113,6 +114,12 @@ public class UtilityClass {
                     new FieldDeclaration(ModifierSet.PUBLIC, returnType, new VariableDeclarator(
                             new VariableDeclaratorId(methodEntity.getMethodDeclaration().getName() + "Result")));
             ASTHelper.addMember(declaration, fieldDeclaration);
+        }
+        if (methodEntity.getMethodDeclaration().getThrows() != null){
+            Type exceptionType = new ClassOrInterfaceType("Exception");
+            FieldDeclaration exceptionField = new FieldDeclaration(ModifierSet.PUBLIC, exceptionType,
+                    new VariableDeclarator(new VariableDeclaratorId("LambdaException")));
+            ASTHelper.addMember(declaration, exceptionField);
         }
         return outputCu;
 
