@@ -133,23 +133,6 @@ public class InvokeMethodCreator {
 //                    methodDeclaration.getName());
 //        }
 //        resultFunction.setBody(bodyBlock);
-        int modifiers = methodDeclaration.getModifiers();
-        if (!ModifierSet.isPublic(modifiers)){
-            if (ModifierSet.isPrivate(modifiers)){
-                ModifierSet.removeModifier(modifiers, ModifierSet.PRIVATE);
-                ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
-                methodDeclaration.setModifiers(modifiers);
-            }else{
-                if (ModifierSet.isProtected(modifiers)){
-                    ModifierSet.removeModifier(modifiers, ModifierSet.PROTECTED);
-                    ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
-                    methodDeclaration.setModifiers(modifiers);
-                }else{
-                    ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
-                    methodDeclaration.setModifiers(modifiers);
-                }
-            }
-        }
 
 
         if (!methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){

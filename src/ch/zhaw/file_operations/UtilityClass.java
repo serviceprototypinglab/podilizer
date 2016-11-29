@@ -1,5 +1,6 @@
 package ch.zhaw.file_operations;
 
+import com.sun.org.apache.xpath.internal.SourceTree;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
@@ -313,5 +314,32 @@ public class UtilityClass {
             return null;
         }
     }
+    public static void makeAllMethodsPublic(ClassEntity classEntity){
+        List<MethodEntity> methods = classEntity.getFunctions();
+        for (MethodEntity method :
+                methods) {
+            makeMethodPublic(method.getMethodDeclaration());
+        }
+    }
+    public static void makeMethodPublic(MethodDeclaration methodDeclaration){
+        int modifiers = methodDeclaration.getModifiers();
+        if (!ModifierSet.isPublic(modifiers)){
+            if (ModifierSet.isPrivate(modifiers)){
+                modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PRIVATE);
+                modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                methodDeclaration.setModifiers(modifiers);
+            }else{
+                if (ModifierSet.isProtected(modifiers)){
+                    modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PROTECTED);
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    methodDeclaration.setModifiers(modifiers);
+                }else{
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    methodDeclaration.setModifiers(modifiers);
+                }
+            }
+        }
+    }
+
 
 }

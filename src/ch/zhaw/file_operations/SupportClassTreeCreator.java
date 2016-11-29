@@ -45,9 +45,9 @@ public class SupportClassTreeCreator {
         int i = 0;
         for (ClassEntity classEntity :
                 classEntityList) {
+//            System.out.println(classEntity.getCu());
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
             CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i));
-            System.out.println(translatedClass);
             for (MethodEntity methodEntity :
                     methodEntityList) {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)){

@@ -21,6 +21,7 @@ public class InvokeMethodsWriter {
         List<ClassEntity> classEntityList = resultProject.getClassEntities();
         for (ClassEntity classEntity :
                 classEntityList) {
+            UtilityClass.makeAllMethodsPublic(classEntity);
             CompilationUnit cu = UtilityClass.translateClass(classEntity);
             UtilityClass.writeCuToFile(classEntity.getPath().toString(), cu);
         }

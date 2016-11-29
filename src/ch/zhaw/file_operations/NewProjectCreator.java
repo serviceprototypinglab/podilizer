@@ -152,7 +152,6 @@ public class NewProjectCreator {
         }else {
             ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity.getMethodDeclaration(), fields));
         }
-        System.out.println(methodEntity.getMethodDeclaration());
         method.setBody(bodyBlock);
 
         List<BodyDeclaration> extraClassMembers = translatedCu.getTypes().get(0).getMembers();
@@ -186,36 +185,7 @@ public class NewProjectCreator {
         //System.out.println(newCU);
         //System.out.println(methodEntity.getMethodDeclaration());
         ASTHelper.addMember(classDeclaration, methodEntity.getMethodDeclaration());
-        //System.out.println(newCU);
         return newCU;
-    }
-    private BlockStmt changeFiledCalls(BlockStmt blockStmt){
-        List<Statement> statements = blockStmt.getStmts();
-        List<Statement> newStatemnets = new ArrayList<>();
-        FieldAccessExprVisitor fieldAccessExprVisitor = new FieldAccessExprVisitor();
-        List<FieldAccessExpr> fieldAccessExprList = new ArrayList<>();
-        fieldAccessExprVisitor.visit(blockStmt, null);
-        fieldAccessExprList.addAll(fieldAccessExprVisitor.getFieldAccessExprList());
-        System.out.println(blockStmt);
-        System.out.println("--------------------------------------------------------------------");
-        System.out.println(fieldAccessExprList);
-        for (Statement statement :
-                statements) {
-            if (statement.contains(new FieldAccessExpr())){
-            }
-        }
-        return new BlockStmt(newStatemnets);
-    }
-    private class FieldAccessExprVisitor extends VoidVisitorAdapter{
-        List<FieldAccessExpr> fieldAccessExprList = new ArrayList<>();
-        @Override
-        public void visit(FieldAccessExpr n, Object arg) {
-            fieldAccessExprList.add(n);
-            super.visit(n, arg);
-        }
-        public List<FieldAccessExpr> getFieldAccessExprList(){
-            return fieldAccessExprList;
-        }
     }
     private BlockStmt returnReplace(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields){
         BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
@@ -224,6 +194,7 @@ public class NewProjectCreator {
         for (Statement statement :
                 statements) {
             if (statement instanceof ReturnStmt){
+                // TODO: 11/29/16 upgrade the way of getting return value
                 String returnVar = statement.toString().substring(7, (statement.toString().length() - 1));
                 Expression outputTypeExpr = new NameExpr("OutputType outputType");
                 List<Expression> arguments = new ArrayList<>();
