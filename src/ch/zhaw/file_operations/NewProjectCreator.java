@@ -15,6 +15,7 @@ import japa.parser.ast.visitor.VoidVisitorAdapter;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.*;
+import java.nio.ReadOnlyBufferException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -135,22 +136,33 @@ public class NewProjectCreator {
             }
         }
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
+        List<Expression> args = new ArrayList<>();
         if (parameters != null){
             for (Parameter parameter :
                     parameters) {
-                NameExpr localVar = new NameExpr(parameter.getType().toString() + " " + parameter.getId().getName());
                 MethodCallExpr methodCallExpr =
                         new MethodCallExpr(new NameExpr("inputType"), "get" +
                                 firstLetterToUpperCase(getFieldNameFromParam(parameter.getId(), fieldsNames).getId().getName()));
-                AssignExpr assignExpr = new AssignExpr(localVar, methodCallExpr, AssignExpr.Operator.assign);
-                ASTHelper.addStmt(bodyBlock, assignExpr);
+//                NameExpr localVar = new NameExpr(parameter.getType().toString() + " " + parameter.getId().getName());
+//                AssignExpr assignExpr = new AssignExpr(localVar, methodCallExpr, AssignExpr.Operator.assign);
+//                ASTHelper.addStmt(bodyBlock, assignExpr);
+                args.add(methodCallExpr);
             }
         }
+        MethodCallExpr selfMethodCallExpr = new MethodCallExpr(null, methodEntity.getMethodDeclaration().getName(), args);
+
 
         if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
+            ASTHelper.addStmt(bodyBlock, selfMethodCallExpr);
             ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields));
         }else {
-            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity.getMethodDeclaration(), fields));
+            String resultType = methodEntity.getMethodDeclaration().getType().toString();
+            String resultVar = methodEntity.getMethodDeclaration().getName() + "LambdaResult";
+            AssignExpr assignExpr = new AssignExpr(new NameExpr(resultType + " " + resultVar), selfMethodCallExpr,
+                    AssignExpr.Operator.assign);
+            ASTHelper.addStmt(bodyBlock, assignExpr);
+            ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields, resultVar));
+//            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity.getMethodDeclaration(), fields));
         }
         method.setBody(bodyBlock);
 
@@ -194,8 +206,8 @@ public class NewProjectCreator {
         for (Statement statement :
                 statements) {
             if (statement instanceof ReturnStmt){
-                // TODO: 11/29/16 upgrade the way of getting return value
-                String returnVar = statement.toString().substring(7, (statement.toString().length() - 1));
+                ReturnStmt returnStmt = (ReturnStmt)statement;
+                String returnVar = returnStmt.getExpr().toString();
                 Expression outputTypeExpr = new NameExpr("OutputType outputType");
                 List<Expression> arguments = new ArrayList<>();
                 for (FieldDeclaration field:
@@ -241,7 +253,31 @@ public class NewProjectCreator {
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
         NameExpr returnExpr = new NameExpr("return outputType");
         BlockStmt result = new BlockStmt();
-        ASTHelper.addStmt(result, bodyBlock);
+//        ASTHelper.addStmt(result, bodyBlock);
+        ASTHelper.addStmt(result, assign);
+        ASTHelper.addStmt(result, returnExpr);
+        return result;
+    }
+    private BlockStmt addReturnCode(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields, String returnVar){
+        BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
+        Expression outputTypeExpr = new NameExpr("OutputType outputType");
+        List<Expression> arguments = new ArrayList<>();
+        for (FieldDeclaration field:
+                fields) {
+            for (VariableDeclarator var :
+                    field.getVariables()) {
+                arguments.add(new NameExpr("this." + var.getId().getName()));
+            }
+        }
+        arguments.add(new NameExpr(returnVar));
+        ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
+
+        ObjectCreationExpr objectCreationExpr =
+                new ObjectCreationExpr(null, type, arguments);
+        AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
+        NameExpr returnExpr = new NameExpr("return outputType");
+        BlockStmt result = new BlockStmt();
+//        ASTHelper.addStmt(result, bodyBlock);
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
         return result;
