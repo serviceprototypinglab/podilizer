@@ -7,10 +7,9 @@ import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
-import japa.parser.ast.stmt.BlockStmt;
-import japa.parser.ast.stmt.ReturnStmt;
-import japa.parser.ast.stmt.Statement;
+import japa.parser.ast.stmt.*;
 import japa.parser.ast.type.ClassOrInterfaceType;
+import japa.parser.ast.type.Type;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 import org.codehaus.plexus.util.FileUtils;
 
@@ -110,10 +109,10 @@ public class NewProjectCreator {
         ASTHelper.addTypeDeclaration(newCU, classDeclaration);
         MethodDeclaration method =
                 new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("OutputType"), "handleRequest");
-        List<NameExpr> throwsList = methodEntity.getMethodDeclaration().getThrows();
-        if(throwsList != null){
-            method.setThrows(throwsList);
-        }
+//        List<NameExpr> throwsList = methodEntity.getMethodDeclaration().getThrows();
+//        if(throwsList != null){
+//            method.setThrows(throwsList);
+//        }
         ASTHelper.addMember(classDeclaration, method);
 
         Parameter param1 = ASTHelper.createParameter(new ClassOrInterfaceType("InputType"), "inputType");
@@ -151,18 +150,34 @@ public class NewProjectCreator {
         }
         MethodCallExpr selfMethodCallExpr = new MethodCallExpr(null, methodEntity.getMethodDeclaration().getName(), args);
 
-
-        if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
-            ASTHelper.addStmt(bodyBlock, selfMethodCallExpr);
-            ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields));
-        }else {
-            String resultType = methodEntity.getMethodDeclaration().getType().toString();
-            String resultVar = methodEntity.getMethodDeclaration().getName() + "LambdaResult";
-            AssignExpr assignExpr = new AssignExpr(new NameExpr(resultType + " " + resultVar), selfMethodCallExpr,
-                    AssignExpr.Operator.assign);
-            ASTHelper.addStmt(bodyBlock, assignExpr);
-            ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields, resultVar));
+        if (methodEntity.getMethodDeclaration().getThrows() != null){
+            if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
+                Expression methodCall = wrapInTryCatch(selfMethodCallExpr, methodEntity, fields);
+                ASTHelper.addStmt(bodyBlock, methodCall);
+                ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields, null));
+            }else {
+                String resultType = methodEntity.getMethodDeclaration().getType().toString();
+                String resultVar = methodEntity.getMethodDeclaration().getName() + "LambdaResult";
+                AssignExpr assignExpr = new AssignExpr(new NameExpr(resultVar), selfMethodCallExpr,
+                        AssignExpr.Operator.assign);
+                Expression methodCall = wrapInTryCatch(resultType + " " + resultVar, assignExpr, resultVar, methodEntity, fields);
+                ASTHelper.addStmt(bodyBlock, methodCall);
+                ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields, resultVar, null));
 //            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity.getMethodDeclaration(), fields));
+            }
+        } else {
+            if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
+                ASTHelper.addStmt(bodyBlock, selfMethodCallExpr);
+                ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields));
+            }else {
+                String resultType = methodEntity.getMethodDeclaration().getType().toString();
+                String resultVar = methodEntity.getMethodDeclaration().getName() + "LambdaResult";
+                AssignExpr assignExpr = new AssignExpr(new NameExpr(resultType + " " + resultVar), selfMethodCallExpr,
+                        AssignExpr.Operator.assign);
+                ASTHelper.addStmt(bodyBlock, assignExpr);
+                ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields, resultVar));
+//            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity.getMethodDeclaration(), fields));
+            }
         }
         method.setBody(bodyBlock);
 
@@ -194,10 +209,55 @@ public class NewProjectCreator {
         }
         InvokeClassTranslator invokeClassTranslator = new InvokeClassTranslator(newCU);
         invokeClassTranslator.generateImports();
-        //System.out.println(newCU);
-        //System.out.println(methodEntity.getMethodDeclaration());
         ASTHelper.addMember(classDeclaration, methodEntity.getMethodDeclaration());
         return newCU;
+    }
+    private Expression wrapInTryCatch(Expression expressionToWrap, MethodEntity methodEntity, List<FieldDeclaration> fields){
+        // TODO: 11/29/16 add Exception saving to the OutputType object
+        String exceptionVarId = "e";
+        Expression tryExpression = expressionToWrap;
+        if (methodEntity.getMethodDeclaration().getThrows() != null){
+            List<NameExpr> exceptionsList = methodEntity.getMethodDeclaration().getThrows();
+
+            String tryBlock = "try{\n " +
+                    "           " + expressionToWrap + ";\n" +
+                    "       }";
+            for (NameExpr exception :
+                    exceptionsList) {
+                BlockStmt inToCatch = addReturnCode(methodEntity.getMethodDeclaration(), fields, exceptionVarId);
+                String catchExpression = " catch(" + exception + " " + exceptionVarId + " ) {\n" +
+                        "           " + inToCatch +
+                        "       }";
+                tryBlock += catchExpression;
+            }
+
+            tryExpression = new NameExpr(tryBlock);
+        }
+        return tryExpression;
+    }
+    private Expression wrapInTryCatch(String declaration, Expression call, String resultVar, MethodEntity methodEntity, List<FieldDeclaration> fields){
+        // TODO: 11/29/16 add Exception saving to the OutputType object
+        String exceptionVarId = "e";
+        Expression tryExpression = new NameExpr();
+        if (methodEntity.getMethodDeclaration().getThrows() != null){
+            List<NameExpr> exceptionsList = methodEntity.getMethodDeclaration().getThrows();
+
+            String tryBlock = declaration + " = null; \n" +
+                    "       try{\n " +
+                    "           " + call + ";\n" +
+                    "       }";
+            for (NameExpr exception :
+                    exceptionsList) {
+                BlockStmt inToCatch = addReturnCode(methodEntity.getMethodDeclaration(), fields, resultVar, exceptionVarId);
+                String catchExpression = " catch(" + exception + " " + exceptionVarId + " ) {\n" +
+                        "           " + inToCatch +
+                        "       }";
+                tryBlock += catchExpression;
+            }
+
+            tryExpression = new NameExpr(tryBlock);
+        }
+        return tryExpression;
     }
     private BlockStmt returnReplace(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields){
         BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
@@ -270,6 +330,31 @@ public class NewProjectCreator {
             }
         }
         arguments.add(new NameExpr(returnVar));
+        ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
+
+        ObjectCreationExpr objectCreationExpr =
+                new ObjectCreationExpr(null, type, arguments);
+        AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
+        NameExpr returnExpr = new NameExpr("return outputType");
+        BlockStmt result = new BlockStmt();
+//        ASTHelper.addStmt(result, bodyBlock);
+        ASTHelper.addStmt(result, assign);
+        ASTHelper.addStmt(result, returnExpr);
+        return result;
+    }
+    private BlockStmt addReturnCode(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields, String returnVar, String exception){
+        BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
+        Expression outputTypeExpr = new NameExpr("OutputType outputType");
+        List<Expression> arguments = new ArrayList<>();
+        for (FieldDeclaration field:
+                fields) {
+            for (VariableDeclarator var :
+                    field.getVariables()) {
+                arguments.add(new NameExpr("this." + var.getId().getName()));
+            }
+        }
+        arguments.add(new NameExpr(returnVar));
+        arguments.add(new NameExpr(exception));
         ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
 
         ObjectCreationExpr objectCreationExpr =
