@@ -146,11 +146,13 @@ public class NewProjectCreator {
                 ASTHelper.addStmt(bodyBlock, assignExpr);
             }
         }
+
         if (methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
-            ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity, fields));
+            ASTHelper.addStmt(bodyBlock, addReturnCode(methodEntity.getMethodDeclaration(), fields));
         }else {
-            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity, fields));
+            ASTHelper.addStmt(bodyBlock, returnReplace(methodEntity.getMethodDeclaration(), fields));
         }
+        System.out.println(methodEntity.getMethodDeclaration());
         method.setBody(bodyBlock);
 
         List<BodyDeclaration> extraClassMembers = translatedCu.getTypes().get(0).getMembers();
@@ -182,8 +184,9 @@ public class NewProjectCreator {
         InvokeClassTranslator invokeClassTranslator = new InvokeClassTranslator(newCU);
         invokeClassTranslator.generateImports();
         //System.out.println(newCU);
-        System.out.println(methodEntity.getMethodDeclaration());
+        //System.out.println(methodEntity.getMethodDeclaration());
         ASTHelper.addMember(classDeclaration, methodEntity.getMethodDeclaration());
+        //System.out.println(newCU);
         return newCU;
     }
     private BlockStmt changeFiledCalls(BlockStmt blockStmt){
@@ -214,8 +217,8 @@ public class NewProjectCreator {
             return fieldAccessExprList;
         }
     }
-    private BlockStmt returnReplace(MethodEntity methodEntity, List<FieldDeclaration> fields){
-        BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
+    private BlockStmt returnReplace(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields){
+        BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
         List<Statement> statements = bodyBlock.getStmts();
         List<Statement> newStatments = new ArrayList<>();
         for (Statement statement :
@@ -249,8 +252,8 @@ public class NewProjectCreator {
         bodyBlock = new BlockStmt(newStatments);
         return bodyBlock;
     }
-    private BlockStmt addReturnCode(MethodEntity methodEntity, List<FieldDeclaration> fields){
-        BlockStmt bodyBlock = methodEntity.getMethodDeclaration().getBody();
+    private BlockStmt addReturnCode(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields){
+        BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
         Expression outputTypeExpr = new NameExpr("OutputType outputType");
         List<Expression> arguments = new ArrayList<>();
         for (FieldDeclaration field:
@@ -266,9 +269,11 @@ public class NewProjectCreator {
                 new ObjectCreationExpr(null, type, arguments);
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
         NameExpr returnExpr = new NameExpr("return outputType");
-        ASTHelper.addStmt(bodyBlock, assign);
-        ASTHelper.addStmt(bodyBlock, returnExpr);
-        return bodyBlock;
+        BlockStmt result = new BlockStmt();
+        ASTHelper.addStmt(result, bodyBlock);
+        ASTHelper.addStmt(result, assign);
+        ASTHelper.addStmt(result, returnExpr);
+        return result;
     }
     private List<ImportDeclaration> createImports(){
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
