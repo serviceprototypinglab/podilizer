@@ -1,6 +1,5 @@
 package ch.zhaw.file_operations;
 
-import com.sun.org.apache.xpath.internal.SourceTree;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
@@ -116,10 +115,14 @@ public class UtilityClass {
             ASTHelper.addMember(declaration, fieldDeclaration);
         }
         if (methodEntity.getMethodDeclaration().getThrows() != null){
-            Type exceptionType = new ClassOrInterfaceType("Exception");
-            FieldDeclaration exceptionField = new FieldDeclaration(ModifierSet.PUBLIC, exceptionType,
+            Type exception = new ClassOrInterfaceType("Exception");
+            FieldDeclaration exceptionField = new FieldDeclaration(ModifierSet.PUBLIC, exception,
                     new VariableDeclarator(new VariableDeclaratorId("LambdaException")));
             ASTHelper.addMember(declaration, exceptionField);
+            Type exceptionTypeString = new ClassOrInterfaceType("String");
+            FieldDeclaration exceptionTypeField = new FieldDeclaration(ModifierSet.PUBLIC, exceptionTypeString,
+                    new VariableDeclarator(new VariableDeclaratorId("LambdaExceptionType")));
+            ASTHelper.addMember(declaration, exceptionTypeField);
         }
         return outputCu;
 

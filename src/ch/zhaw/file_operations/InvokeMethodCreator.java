@@ -11,7 +11,11 @@ import japa.parser.ast.stmt.CatchClause;
 import japa.parser.ast.stmt.TryStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 
+import java.io.IOException;
+import java.lang.reflect.Array;
+import java.lang.reflect.Type;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 import static ch.zhaw.file_operations.UtilityClass.firstLetterToUpperCase;
@@ -66,6 +70,7 @@ public class InvokeMethodCreator {
                 arguments.add(new NameExpr(param.getId().getName()));
             }
         }
+
         ClassOrInterfaceType type = new ClassOrInterfaceType(getSupportClassPackage(methodEntity) + "InputType");
         ObjectCreationExpr objectCreationExpr =
                 new ObjectCreationExpr(null, type, arguments);
@@ -121,6 +126,20 @@ public class InvokeMethodCreator {
                 ASTHelper.addStmt(bodyBlock, assignExpr);
 
             }
+        }
+        if (methodEntity.getMethodDeclaration().getThrows() != null){
+            String exceptionTypeChecking = "";
+            for (NameExpr exception:
+                    methodEntity.getMethodDeclaration().getThrows()) {
+                String exceptionName = exception.getName();
+                exceptionTypeChecking += "if (outputType.getLambdaException().getClass().getSimpleName().equals(\"" + exceptionName +"\")){\n" +
+                        "               throw (" + exceptionName + ")outputType.getLambdaException();\n" +
+                        "           }\n         ";
+            }
+            NameExpr throwException = new NameExpr("if(outputType.getLambdaException() != null){\n" +
+                    "           " + exceptionTypeChecking +
+                    "           }");
+            ASTHelper.addStmt(bodyBlock, throwException);
         }
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         methodDeclaration.setBody(bodyBlock);
