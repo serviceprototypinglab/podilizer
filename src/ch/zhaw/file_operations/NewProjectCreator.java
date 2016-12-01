@@ -123,15 +123,17 @@ public class NewProjectCreator {
         ArrayList<String> fieldsNames = new ArrayList<>();
         for (FieldDeclaration field:
                 fields){
-            for (VariableDeclarator var:
-                    field.getVariables()) {
-                fieldsNames.add(var.getId().getName());
-                NameExpr staticFieldVar = new NameExpr("this." + var.getId().getName());
-                MethodCallExpr methodCallExpr =
-                        new MethodCallExpr(new NameExpr("inputType"), "get" +
-                                firstLetterToUpperCase(var.getId().getName()));
-                AssignExpr assignExpr = new AssignExpr(staticFieldVar, methodCallExpr, AssignExpr.Operator.assign);
-                ASTHelper.addStmt(bodyBlock, assignExpr);
+            if (UtilityClass.isFieldAccessible(methodEntity.getMethodDeclaration(), field)){
+                for (VariableDeclarator var:
+                        field.getVariables()) {
+                    fieldsNames.add(var.getId().getName());
+                    NameExpr staticFieldVar = new NameExpr("this." + var.getId().getName());
+                    MethodCallExpr methodCallExpr =
+                            new MethodCallExpr(new NameExpr("inputType"), "get" +
+                                    firstLetterToUpperCase(var.getId().getName()));
+                    AssignExpr assignExpr = new AssignExpr(staticFieldVar, methodCallExpr, AssignExpr.Operator.assign);
+                    ASTHelper.addStmt(bodyBlock, assignExpr);
+                }
             }
         }
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();

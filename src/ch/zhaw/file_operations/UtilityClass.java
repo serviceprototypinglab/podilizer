@@ -36,6 +36,13 @@ public class UtilityClass {
         first = first.toUpperCase();
         return first + second;
     }
+    public static boolean isFieldAccessible(MethodDeclaration methodDeclaration, FieldDeclaration fieldDeclaration){
+        boolean result = true;
+        if (ModifierSet.isStatic(methodDeclaration.getModifiers()) & !ModifierSet.isStatic(fieldDeclaration.getModifiers())){
+            result = false;
+        }
+        return result;
+    }
     private static CompilationUnit createInPutType(MethodEntity methodEntity){
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
         CompilationUnit inputCu = new CompilationUnit();
@@ -47,25 +54,16 @@ public class UtilityClass {
         if (fields != null){
             for (FieldDeclaration field:
                     fields) {
-                for (VariableDeclarator var :
-                        field.getVariables()) {
-                    fieldsNames.add(var.getId().getName());
+                if (isFieldAccessible(methodEntity.getMethodDeclaration(), field)){
+                    for (VariableDeclarator var :
+                            field.getVariables()) {
+                        fieldsNames.add(var.getId().getName());
+                    }
+                    FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
+                    ASTHelper.addMember(declaration, tmp);
                 }
-                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
-                ASTHelper.addMember(declaration, tmp);
-            /*
-            ~~ Only static fields processing ~~
-
-            boolean isStaticNonFinal =
-                    ModifierSet.isStatic(field.getModifiers()) & !ModifierSet.isFinal(field.getModifiers());
-            if (isStaticNonFinal){
-                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
-                ASTHelper.addMember(declaration, tmp);
-            }
-            */
             }
         }
-
         if (parameters != null){
             for (Parameter param :
                     parameters) {

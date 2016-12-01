@@ -49,9 +49,11 @@ public class InvokeMethodCreator {
         List<Expression> argumentsIT = new ArrayList<>();
         for (FieldDeclaration field :
                 allFields) {
-            for (VariableDeclarator var :
-                    field.getVariables()) {
-                argumentsIT.add(new NameExpr("this." +  var.getId().getName()));
+            if (UtilityClass.isFieldAccessible(methodDeclaration, field)){
+                for (VariableDeclarator var :
+                        field.getVariables()) {
+                    argumentsIT.add(new NameExpr("this." +  var.getId().getName()));
+                }
             }
         }
         List<Parameter> params = methodEntity.getMethodDeclaration().getParameters();
@@ -140,7 +142,6 @@ public class InvokeMethodCreator {
             ASTHelper.addStmt(bodyBlock, returnExpr);
         }
     }
-
     private String getSupportClassPackage(MethodEntity methodEntity){
         String result = "awsl.";
         String packageStr = methodEntity.getClassEntity().getCu().getPackage().getName().toString();
