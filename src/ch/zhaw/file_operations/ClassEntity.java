@@ -16,19 +16,27 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-
+/**
+ * <h1> Represents .java file with class inside</h1>
+ */
 public class ClassEntity implements Serializable{;
     private Path path;
     private List<MethodEntity> functions;
     private List<FieldDeclaration> fields;
     private CompilationUnit cu;
-    //transforms List<MethodDeclaration> into list<MethodEntity>
+
     public ClassEntity(ClassEntity classEntity){
         this.path = classEntity.getPath();
         this.fields = classEntity.getFields();
         this.functions = classEntity.getFunctions();
         this.cu = classEntity.getCu();
     }
+
+    /**
+     * Transforms List<MethodDeclaration> into List<MethodEntity>
+     * @param inputList
+     * @return
+     */
     private List<MethodEntity> listMethodEntityTransformer(List<MethodDeclaration> inputList){
         List<MethodEntity> result = new ArrayList<>();
         Iterator<MethodDeclaration> iterator = inputList.iterator();
@@ -65,27 +73,52 @@ public class ClassEntity implements Serializable{;
         fields = fieldsVisitor.getFieldDeclarationList();
     }
 
+    /**
+     * Visits methods in the class
+     */
     private class MethodVisitor extends VoidVisitorAdapter {
         private List<MethodDeclaration> methodDeclarationList = new ArrayList<>();
+
+        /**
+         * Override method, saves visited methods into the List
+         * @param n
+         * @param arg
+         */
         @Override
         public void visit(MethodDeclaration n, Object arg) {
             methodDeclarationList.add(n);
 
             super.visit(n, arg);
         }
+
+        /**
+         * @return the List with Method declarations
+         */
         public List<MethodDeclaration> getMethodDeclarationList(){
             return methodDeclarationList;
         }
     }
+
+    /**
+     * Visits fields in the class
+     */
     private class FieldsVisitor extends VoidVisitorAdapter{
         private List<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
 
+        /**
+         * Saves visited fields into List
+         * @param n
+         * @param arg
+         */
         @Override
         public void visit(FieldDeclaration n, Object arg) {
             fieldDeclarationList.add(n);
             super.visit(n, arg);
         }
 
+        /**
+         * @return the List with Field declarations
+         */
         public List<FieldDeclaration> getFieldDeclarationList() {
             return fieldDeclarationList;
         }
@@ -99,7 +132,10 @@ public class ClassEntity implements Serializable{;
         return functions;
     }
 
-    //returns method 'main' in the class if it's exists if not, returns null
+    /**
+     * Looks for main method
+     * @return method 'main' in the class if it exists, if not - null
+     */
     public MethodEntity getMainMethod(){
         MethodEntity result = null;
         Iterator<MethodEntity> methodEntityIterator = functions.iterator();

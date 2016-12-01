@@ -305,6 +305,11 @@ public class UtilityClass {
             makeMethodPublic(method.getMethodDeclaration());
         }
     }
+
+    /**
+     * Changes any method's access modifier to {@code public}
+     * @param methodDeclaration {@code MethodDeclaration} to be changed
+     */
     public static void makeMethodPublic(MethodDeclaration methodDeclaration){
         int modifiers = methodDeclaration.getModifiers();
         if (!ModifierSet.isPublic(modifiers)){

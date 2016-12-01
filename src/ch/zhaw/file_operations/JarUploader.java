@@ -21,6 +21,11 @@ class JarUploader {
         this.timeout = timeout;
         this.memorySize = memorySize;
     }
+
+    /**
+     * Writes command into CMD and run it
+     * @param command the {@code String} to be run
+     */
     private void writeIntoCMD(String command){
         Runtime runtime = Runtime.getRuntime();
         try {
@@ -44,6 +49,11 @@ class JarUploader {
             e.printStackTrace();
         }
     }
+
+    /**
+     * Creates the CMD command which creates 'Lambda Function'
+     * @return generated {@code String}
+     */
     private String getCommand(){
         String result = "";
         result = "aws lambda create-function" +
@@ -57,6 +67,10 @@ class JarUploader {
                 " --memory-size " + memorySize;
         return result;
     }
+
+    /**
+     * Creates Lambda Function on AWS and uploads the source code jar
+     */
     void uploadFunction(){
         writeIntoCMD(getCommand());
     }

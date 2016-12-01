@@ -11,14 +11,7 @@ public class InvokeMethodsWriter {
         this.oldProject = oldProject;
     }
     public void write(){
-        JavaProjectEntity resultProject = null;
-        try {
-            resultProject = (JavaProjectEntity)oldProject.clone();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
-
-        List<ClassEntity> classEntityList = resultProject.getClassEntities();
+        List<ClassEntity> classEntityList = oldProject.getClassEntities();
         for (ClassEntity classEntity :
                 classEntityList) {
             UtilityClass.makeAllMethodsPublic(classEntity);

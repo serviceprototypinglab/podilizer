@@ -1,5 +1,9 @@
 package ch.zhaw.file_operations;
 
+
+/**
+ * PoJo which represents .yml config file
+ */
 public class YmlEntity {
     private String path;
     private String newPath;

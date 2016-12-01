@@ -32,11 +32,7 @@ public class SupportClassTreeCreator {
     }
 
     private List<String> create(){
-        try {
-            projectEntity = (JavaProjectEntity)projectEntity.clone();
-        } catch (CloneNotSupportedException e) {
-            e.printStackTrace();
-        }
+
         List<String> lambdaPathList = new ArrayList<>();
         List<ClassEntity> classEntityList = excludeInners(projectEntity.getClassEntities());
 //        List<ClassEntity> copyClassList = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath())).getClassEntities();

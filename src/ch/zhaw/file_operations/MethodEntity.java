@@ -11,7 +11,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MethodEntity implements Serializable{
+/**
+ * <h1>Represents java method</h1>
+ */
+public class MethodEntity{
     private MethodDeclaration methodDeclaration;
     private List<MethodCallExpr> methodCallExprs;
     private ClassEntity classEntity;
@@ -32,14 +35,18 @@ public class MethodEntity implements Serializable{
         methodCallExprs = methodCallsVisitor.getMethodCallExprs();
     }
 
+    /**
+     * Gives back the declaration of the class the method contains in
+     * @return {@code ClassOrInterfaceDeclaration} if parent class is not anonymous or inner class;
+     *         {@code null} if Parent node is anonymous or inner class
+     *
+     */
     public ClassOrInterfaceDeclaration getParentClass(){
         try {
             ClassOrInterfaceDeclaration result = (ClassOrInterfaceDeclaration)methodDeclaration.getParentNode();
             return result;
         }catch (ClassCastException e){
             ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)methodDeclaration.getParentNode();
-            // TODO: 11/17/16 prevent anonymous classes processing
-            //this = new MethodEntity(new MethodDeclaration(), new ClassEntity(Paths.get("asdasd")));
         }
         return null;
     }
@@ -51,7 +58,10 @@ public class MethodEntity implements Serializable{
     public void setMethodDeclaration(MethodDeclaration methodDeclaration) {
         this.methodDeclaration = methodDeclaration;
     }
-    //visits methods calls
+
+    /**
+     * Visits methods calls
+     */
     private class MethodCallsVisitor extends VoidVisitorAdapter {
         private List<MethodCallExpr> methodCallExprs = new ArrayList<>();
         @Override

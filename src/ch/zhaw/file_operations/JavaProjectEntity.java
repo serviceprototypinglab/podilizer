@@ -12,7 +12,11 @@ import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.List;
 
-public class JavaProjectEntity implements Cloneable{
+/**
+ * <h1>Represents java project</h1>
+ *
+ */
+public class JavaProjectEntity{
     private String pattern = "*.java";
     private Path location;
     private List<ClassEntity> classEntities;
@@ -32,6 +36,9 @@ public class JavaProjectEntity implements Cloneable{
         methodEntities = findAllMethods(classEntities);
     }
 
+    /**
+     * Looks for all files in the defined path with certain pattern
+     */
     public class Finder extends SimpleFileVisitor<Path> {
         private PathMatcher matcher;
         private List<ClassEntity> files = new ArrayList<>();
@@ -66,6 +73,12 @@ public class JavaProjectEntity implements Cloneable{
         return classEntities;
     }
 
+    /**
+     * Looks for all methods(Names) over the {@code List<ClassEntity>} object
+     * @param classEntities Collection of {@link ClassEntity}
+     * @return the List of NameExpr objects, that are names of methods
+     *
+     */
     private List<NameExpr> findAllMethods(List<ClassEntity> classEntities){
         Iterator<ClassEntity> iterator = classEntities.iterator();
         List<NameExpr> result = new ArrayList<>();
@@ -126,10 +139,5 @@ public class JavaProjectEntity implements Cloneable{
                 "location=" + location +
                 ", classEntities=" + classEntities +
                 '}';
-    }
-
-    @Override
-    public Object clone() throws CloneNotSupportedException {
-        return super.clone();
     }
 }
