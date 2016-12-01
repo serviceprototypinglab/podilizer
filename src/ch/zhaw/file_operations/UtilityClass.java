@@ -96,16 +96,6 @@ public class UtilityClass {
                 FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
                 ASTHelper.addMember(declaration, tmp);
             }
-            /*
-            ~~ Only static fields processing ~~
-
-            boolean isStaticNonFinal =
-                    ModifierSet.isStatic(field.getModifiers()) & !ModifierSet.isFinal(field.getModifiers());
-            if (isStaticNonFinal){
-                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
-                ASTHelper.addMember(declaration, tmp);
-            }
-            */
         }
         Type returnType = methodEntity.getMethodDeclaration().getType();
         if (!returnType.equals(ASTHelper.VOID_TYPE)){
