@@ -103,9 +103,16 @@ public class NewProjectCreator {
             }
             */
         }
-        List implementsList = new ArrayList();
+        ClassOrInterfaceDeclaration type = (ClassOrInterfaceDeclaration)translatedCu.getTypes().get(0);
+        List<ClassOrInterfaceType> implementsList = new ArrayList<>();
         implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
+        if (type.getImplements() != null){
+            implementsList.addAll(type.getImplements());
+        }
         classDeclaration.setImplements(implementsList);
+        if (type.getExtends() != null){
+            classDeclaration.setExtends(type.getExtends());
+        }
         ASTHelper.addTypeDeclaration(newCU, classDeclaration);
         MethodDeclaration method =
                 new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("OutputType"), "handleRequest");
