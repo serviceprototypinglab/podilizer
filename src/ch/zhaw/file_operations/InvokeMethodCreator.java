@@ -2,24 +2,15 @@ package ch.zhaw.file_operations;
 
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
-import japa.parser.ast.ImportDeclaration;
-import japa.parser.ast.Node;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
-import japa.parser.ast.stmt.CatchClause;
-import japa.parser.ast.stmt.TryStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 
-import java.io.IOException;
-import java.lang.reflect.Array;
-import java.lang.reflect.Type;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 
 import static ch.zhaw.file_operations.UtilityClass.firstLetterToUpperCase;
-import static ch.zhaw.file_operations.UtilityClass.getOnlyStaticFields;
 
 public class InvokeMethodCreator {
     private MethodEntity methodEntity;
@@ -30,16 +21,15 @@ public class InvokeMethodCreator {
 
     public void createMethodInvoker() {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
+        MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         BlockStmt bodyBlock = new BlockStmt();
         NameExpr accessIDKeyVarExpr = new NameExpr("String awsAccessKeyId = \"" +
                 ConfigReader.getConfig().getAwsAccessKeyId() + "\"");
         NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"" +
                 ConfigReader.getConfig().getAwsSecretAccessKey() + "\"");
-        NameExpr regionNameVarExpr = new NameExpr("String regionName = \"" +
-                ConfigReader.getConfig().getRegion() + "\"");
-        String functionName = "" + methodEntity.getClassEntity().getCu().getPackage().getName() +
-                methodEntity.getClassEntity().getCu().getTypes().get(0).getName() +
-                methodEntity.getMethodDeclaration().getName();
+        NameExpr regionNameVarExpr = new NameExpr("String regionName = \"" + ConfigReader.getConfig().getRegion() + "\"");
+        String functionName = "" + compilationUnit.getPackage().getName() + compilationUnit.getTypes().get(0).getName() +
+                methodDeclaration.getName();
         NameExpr functionNameVarExpr = new NameExpr("String functionName = \"" + functionName + "\"");
         NameExpr regionVarExpr = new NameExpr("Region region");
         NameExpr credentialsVarExpr = new NameExpr("AWSCredentials credentials");
@@ -55,25 +45,26 @@ public class InvokeMethodCreator {
         // List<FieldDeclaration> staticFields = getOnlyStaticFields(methodEntity.getClassEntity().getFields());
         List<FieldDeclaration> allFields = methodEntity.getClassEntity().getFields();
         Expression outputTypeExpr = new NameExpr(getSupportClassPackage(methodEntity) + "InputType inputType");
-        List<Expression> arguments = new ArrayList<>();
+        //InputType instance arguments
+        List<Expression> argumentsIT = new ArrayList<>();
         for (FieldDeclaration field :
                 allFields) {
             for (VariableDeclarator var :
                     field.getVariables()) {
-                arguments.add(new NameExpr("this." +  var.getId().getName()));
+                argumentsIT.add(new NameExpr("this." +  var.getId().getName()));
             }
         }
         List<Parameter> params = methodEntity.getMethodDeclaration().getParameters();
         if (params != null){
             for (Parameter param:
                     params) {
-                arguments.add(new NameExpr(param.getId().getName()));
+                argumentsIT.add(new NameExpr(param.getId().getName()));
             }
         }
 
         ClassOrInterfaceType type = new ClassOrInterfaceType(getSupportClassPackage(methodEntity) + "InputType");
         ObjectCreationExpr objectCreationExpr =
-                new ObjectCreationExpr(null, type, arguments);
+                new ObjectCreationExpr(null, type, argumentsIT);
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
 
         //--creating input /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
@@ -96,8 +87,6 @@ public class InvokeMethodCreator {
         NameExpr tryEnd = new NameExpr("} catch(Exception e) {\n" +
                 "          \n" +
                 "            }");
-
-
         ASTHelper.addStmt(bodyBlock, accessIDKeyVarExpr);
         ASTHelper.addStmt(bodyBlock, accessSecretKeyVarExpr);
         ASTHelper.addStmt(bodyBlock, regionNameVarExpr);
@@ -114,23 +103,25 @@ public class InvokeMethodCreator {
         ASTHelper.addStmt(bodyBlock, invokeInit);
         ASTHelper.addStmt(bodyBlock, invoke);
         ASTHelper.addStmt(bodyBlock, tryEnd);
-        for (FieldDeclaration staticField:
+        for (FieldDeclaration field:
                 allFields){
-            for (VariableDeclarator var:
-                    staticField.getVariables()) {
-                NameExpr staticFieldVar = new NameExpr("this." + var.getId().getName());
-                MethodCallExpr methodCallExpr =
-                        new MethodCallExpr(new NameExpr("outputType"), "get" +
-                                firstLetterToUpperCase(var.getId().getName()));
-                AssignExpr assignExpr = new AssignExpr(staticFieldVar, methodCallExpr, AssignExpr.Operator.assign);
-                ASTHelper.addStmt(bodyBlock, assignExpr);
+            if (!ModifierSet.isFinal(field.getModifiers())){
+                for (VariableDeclarator var:
+                        field.getVariables()) {
+                    NameExpr staticFieldVar = new NameExpr("this." + var.getId().getName());
+                    MethodCallExpr methodCallExpr =
+                            new MethodCallExpr(new NameExpr("outputType"), "get" +
+                                    firstLetterToUpperCase(var.getId().getName()));
+                    AssignExpr assignExpr = new AssignExpr(staticFieldVar, methodCallExpr, AssignExpr.Operator.assign);
+                    ASTHelper.addStmt(bodyBlock, assignExpr);
 
+                }
             }
         }
-        if (methodEntity.getMethodDeclaration().getThrows() != null){
+        if (methodDeclaration.getThrows() != null){
             String exceptionTypeChecking = "";
             for (NameExpr exception:
-                    methodEntity.getMethodDeclaration().getThrows()) {
+                    methodDeclaration.getThrows()) {
                 String exceptionName = exception.getName();
                 exceptionTypeChecking += "if (outputType.getLambdaException().getClass().getSimpleName().equals(\"" + exceptionName +"\")){\n" +
                         "               throw (" + exceptionName + ")outputType.getLambdaException();\n" +
@@ -141,22 +132,11 @@ public class InvokeMethodCreator {
                     "           }");
             ASTHelper.addStmt(bodyBlock, throwException);
         }
-        MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         methodDeclaration.setBody(bodyBlock);
-//        MethodDeclaration resultFunction;
-//        if (methodDeclaration.getParameters() != null){
-//            resultFunction = new MethodDeclaration(methodDeclaration.getModifiers(), methodDeclaration.getType(),
-//                    methodDeclaration.getName(), methodDeclaration.getParameters());
-//        }else {
-//            resultFunction = new MethodDeclaration(methodDeclaration.getModifiers(), methodDeclaration.getType(),
-//                    methodDeclaration.getName());
-//        }
-//        resultFunction.setBody(bodyBlock);
 
-
-        if (!methodEntity.getMethodDeclaration().getType().equals(ASTHelper.VOID_TYPE)){
+        if (!methodDeclaration.getType().equals(ASTHelper.VOID_TYPE)){
             NameExpr returnExpr = new NameExpr("return outputType.get" +
-                    firstLetterToUpperCase(methodEntity.getMethodDeclaration().getName() + "Result()"));
+                    firstLetterToUpperCase(methodDeclaration.getName() + "Result()"));
             ASTHelper.addStmt(bodyBlock, returnExpr);
         }
     }

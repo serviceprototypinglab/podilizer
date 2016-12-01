@@ -94,8 +94,10 @@ public class UtilityClass {
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
         for (FieldDeclaration field:
                 fields) {
-            FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
-            ASTHelper.addMember(declaration, tmp);
+            if (!ModifierSet.isFinal(field.getModifiers())){
+                FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
+                ASTHelper.addMember(declaration, tmp);
+            }
             /*
             ~~ Only static fields processing ~~
 
@@ -162,7 +164,7 @@ public class UtilityClass {
         }
         return new PackageDeclaration(packageNameExpr);
     }
-    public static CompilationUnit createGetSet(CompilationUnit compilationUnit, MethodEntity methodEntity, boolean isForCloud){
+    private static CompilationUnit createGetSet(CompilationUnit compilationUnit, MethodEntity methodEntity, boolean isForCloud){
         if (isForCloud){
             compilationUnit.setImports(generateImportsList(methodEntity));
         }else{
@@ -232,7 +234,7 @@ public class UtilityClass {
             fieldDeclarationList.add(n);
             super.visit(n, arg);
         }
-        public List<FieldDeclaration> getFieldDeclarationList() {
+        List<FieldDeclaration> getFieldDeclarationList() {
             return fieldDeclarationList;
         }
     }
@@ -254,8 +256,6 @@ public class UtilityClass {
         return staticFields;
     }
     public static CompilationUnit translateClass(ClassEntity classEntity){
-//        ClassEntity clonedClassEntity = (ClassEntity) deepClone(classEntity);
-//        CompilationUnit cu = clonedClassEntity.getCu();
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
@@ -309,20 +309,6 @@ public class UtilityClass {
             return invokeClassTranslator.getCompilationUnit();
         }
         return cu;
-    }
-    public static Object deepClone(Object object) {
-        try {
-            ByteArrayOutputStream baos = new ByteArrayOutputStream();
-            ObjectOutputStream oos = new ObjectOutputStream(baos);
-            oos.writeObject(object);
-            ByteArrayInputStream bais = new ByteArrayInputStream(baos.toByteArray());
-            ObjectInputStream ois = new ObjectInputStream(bais);
-            return ois.readObject();
-        }
-        catch (Exception e) {
-            e.printStackTrace();
-            return null;
-        }
     }
     public static void makeAllMethodsPublic(ClassEntity classEntity){
         List<MethodEntity> methods = classEntity.getFunctions();

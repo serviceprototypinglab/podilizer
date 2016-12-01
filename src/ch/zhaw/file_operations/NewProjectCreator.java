@@ -217,19 +217,14 @@ public class NewProjectCreator {
         Expression tryExpression = expressionToWrap;
         if (methodEntity.getMethodDeclaration().getThrows() != null){
             List<NameExpr> exceptionsList = methodEntity.getMethodDeclaration().getThrows();
-
             String tryBlock = "try{\n " +
                     "           " + expressionToWrap + ";\n" +
                     "       }";
             for (NameExpr exception :
                     exceptionsList) {
                 BlockStmt inToCatch = addReturnCode(methodEntity.getMethodDeclaration(), fields, exceptionVarId, exception.getName());
-                String catchExpression = " catch(" + exception + " " + exceptionVarId + " ) {\n" +
-                        "           " + inToCatch +
-                        "       }";
-                tryBlock += catchExpression;
+                tryBlock += generateCatchBlock(exception.getName(), exceptionVarId, inToCatch);
             }
-
             tryExpression = new NameExpr(tryBlock);
         }
         return tryExpression;
@@ -239,7 +234,6 @@ public class NewProjectCreator {
         Expression tryExpression = new NameExpr();
         if (methodEntity.getMethodDeclaration().getThrows() != null){
             List<NameExpr> exceptionsList = methodEntity.getMethodDeclaration().getThrows();
-
             String tryBlock = declaration + " = null; \n" +
                     "       try{\n " +
                     "           " + call + ";\n" +
@@ -247,15 +241,16 @@ public class NewProjectCreator {
             for (NameExpr exception :
                     exceptionsList) {
                 BlockStmt inToCatch = addReturnCode(methodEntity.getMethodDeclaration(), fields, resultVar, exceptionVarId, exception.getName());
-                String catchExpression = " catch(" + exception + " " + exceptionVarId + " ) {\n" +
-                        "           " + inToCatch +
-                        "       }";
-                tryBlock += catchExpression;
+                tryBlock += generateCatchBlock(exception.getName(), exceptionVarId, inToCatch);
             }
-
             tryExpression = new NameExpr(tryBlock);
         }
         return tryExpression;
+    }
+    private String generateCatchBlock(String exception, String varId, BlockStmt catchAction){
+        return  " catch(" + exception + " " + varId + " ) {\n" +
+                "           " + catchAction +
+                "       }";
     }
     private BlockStmt returnReplace(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields){
         BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
@@ -294,16 +289,8 @@ public class NewProjectCreator {
         return bodyBlock;
     }
     private BlockStmt addReturnCode(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields){
-        BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
         Expression outputTypeExpr = new NameExpr("OutputType outputType");
-        List<Expression> arguments = new ArrayList<>();
-        for (FieldDeclaration field:
-                fields) {
-            for (VariableDeclarator var :
-                    field.getVariables()) {
-                arguments.add(new NameExpr("this." + var.getId().getName()));
-            }
-        }
+        List<Expression> arguments = generateArguments(fields);
         ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
 
         ObjectCreationExpr objectCreationExpr =
@@ -311,22 +298,13 @@ public class NewProjectCreator {
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
         NameExpr returnExpr = new NameExpr("return outputType");
         BlockStmt result = new BlockStmt();
-//        ASTHelper.addStmt(result, bodyBlock);
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
         return result;
     }
     private BlockStmt addReturnCode(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields, String returnVar){
-        BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
         Expression outputTypeExpr = new NameExpr("OutputType outputType");
-        List<Expression> arguments = new ArrayList<>();
-        for (FieldDeclaration field:
-                fields) {
-            for (VariableDeclarator var :
-                    field.getVariables()) {
-                arguments.add(new NameExpr("this." + var.getId().getName()));
-            }
-        }
+        List<Expression> arguments = generateArguments(fields);
         arguments.add(new NameExpr(returnVar));
         ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
 
@@ -335,22 +313,13 @@ public class NewProjectCreator {
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
         NameExpr returnExpr = new NameExpr("return outputType");
         BlockStmt result = new BlockStmt();
-//        ASTHelper.addStmt(result, bodyBlock);
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
         return result;
     }
     private BlockStmt addReturnCode(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields, String exception, String exceptionType){
-        BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
         Expression outputTypeExpr = new NameExpr("OutputType outputType");
-        List<Expression> arguments = new ArrayList<>();
-        for (FieldDeclaration field:
-                fields) {
-            for (VariableDeclarator var :
-                    field.getVariables()) {
-                arguments.add(new NameExpr("this." + var.getId().getName()));
-            }
-        }
+        List<Expression> arguments = generateArguments(fields);
         arguments.add(new NameExpr(exception));
         arguments.add(new NameExpr("\"" + exceptionType + "\""));
         ClassOrInterfaceType type = new ClassOrInterfaceType("OutputType");
@@ -360,23 +329,14 @@ public class NewProjectCreator {
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
         NameExpr returnExpr = new NameExpr("return outputType");
         BlockStmt result = new BlockStmt();
-//        ASTHelper.addStmt(result, bodyBlock);
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
         return result;
     }
     private BlockStmt addReturnCode(MethodDeclaration methodDeclaration, List<FieldDeclaration> fields,
                                     String returnVar, String exception, String exceptionType){
-        BlockStmt bodyBlock = new BlockStmt(methodDeclaration.getBody().getStmts());
         Expression outputTypeExpr = new NameExpr("OutputType outputType");
-        List<Expression> arguments = new ArrayList<>();
-        for (FieldDeclaration field:
-                fields) {
-            for (VariableDeclarator var :
-                    field.getVariables()) {
-                arguments.add(new NameExpr("this." + var.getId().getName()));
-            }
-        }
+        List<Expression> arguments = generateArguments(fields);
         arguments.add(new NameExpr(returnVar));
         arguments.add(new NameExpr(exception));
         arguments.add(new NameExpr("\"" + exceptionType + "\""));
@@ -387,10 +347,22 @@ public class NewProjectCreator {
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
         NameExpr returnExpr = new NameExpr("return outputType");
         BlockStmt result = new BlockStmt();
-//        ASTHelper.addStmt(result, bodyBlock);
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
         return result;
+    }
+    private List<Expression> generateArguments(List<FieldDeclaration> fields){
+        List<Expression> arguments = new ArrayList<>();
+        for (FieldDeclaration field:
+                fields) {
+            if (!ModifierSet.isFinal(field.getModifiers())){
+                for (VariableDeclarator var :
+                        field.getVariables()) {
+                    arguments.add(new NameExpr("this." + var.getId().getName()));
+                }
+            }
+        }
+        return arguments;
     }
     private List<ImportDeclaration> createImports(){
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
