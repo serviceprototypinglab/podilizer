@@ -26,22 +26,15 @@ public class SupportClassTreeCreator {
     public SupportClassTreeCreator(JavaProjectEntity projectEntity) {
         this.projectEntity = projectEntity;
     }
-    public void sameNameFieldTest(String string, int projectEntity){
-        int o = 0;
-        String m = " ";
-    }
-
     private List<String> create(){
 
         List<String> lambdaPathList = new ArrayList<>();
         List<ClassEntity> classEntityList = excludeInners(projectEntity.getClassEntities());
-//        List<ClassEntity> copyClassList = new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath())).getClassEntities();
         List<ClassEntity> copyClassList = excludeInners(new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath())).getClassEntities());
 
         int i = 0;
         for (ClassEntity classEntity :
                 classEntityList) {
-//            System.out.println(classEntity.getCu());
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
             CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i));
             for (MethodEntity methodEntity :
@@ -71,7 +64,6 @@ public class SupportClassTreeCreator {
 
                         String pathLambdaProject = "" + ConfigReader.getConfig().getNewPath() +
                                 "/LambdaProjects/" + packageName + "/" + className + "/" + functionName;
-                        NewProjectCreator projectCreator = new NewProjectCreator();
                         File file1 = new File(pathLambdaProject);
                         file1.mkdirs();
                         JarBuilder jarBuilder = new JarBuilder();
@@ -89,8 +81,6 @@ public class SupportClassTreeCreator {
                         lambdaFunction.create();
                         writeCuToFile(lambdaPath + "/OutputType.java", getOutputClass(methodEntity, true));
                         writeCuToFile(lambdaPath + "/InputType.java", getInputClass(methodEntity, true));
-//                        CompilationUnit cuToWrite = projectCreator.createLambdaFunction(methodEntity,
-//                                translatedClass);
                         CompilationUnit cuToWrite = lambdaFunction.getNewCU();
                                 writeCuToFile(lambdaPath + "/LambdaFunction.java", cuToWrite);
                     }
@@ -101,7 +91,7 @@ public class SupportClassTreeCreator {
         }
         return lambdaPathList;
     }
-    public void build(){
+    public void build(boolean uploadFlag){
         List<String> lambdaPathList = create();
         JarBuilder jarBuilder = new JarBuilder();
         String suppClassTreePath;
@@ -115,8 +105,17 @@ public class SupportClassTreeCreator {
                 e.printStackTrace();
             }
             jarBuilder.createJar(path);
+            if (uploadFlag){
+                JarUploader jarUploader = new JarUploader(UtilityClass.generateLumbdaName(path),
+                        "lambda-java-example-1.0-SNAPSHOT.jar",
+                        Constants.FUNCTION_PACKAGE + "Lambda Function::handleRequest", 60, 1024);
+                jarUploader.uploadFunction();
+                // TODO: 12/2/16 Fix the problem with missing information when function is uploading
+                System.out.println("uploading done here");
+            }
         }
     }
+
     /**
     excludes compilation units which have inner classes from List<ClassEntity>
      */

@@ -305,6 +305,28 @@ public class UtilityClass {
             makeMethodPublic(method.getMethodDeclaration());
         }
     }
+    public static String generateLumbdaName(String path){
+        String cut = "" + ConfigReader.getConfig().getNewPath() +
+                "/LambdaProjects/";
+        path = path.substring(cut.length(), path.length());
+        path = path.replace("/", "_");
+        return path;
+    }
+    public static String generateLumbdaName(MethodEntity methodEntity){
+        String packageName = "";
+        ClassEntity classEntity = methodEntity.getClassEntity();
+        if(classEntity.getCu().getPackage() != null){
+            packageName = classEntity.getCu().getPackage().getName().toString();
+            packageName = packageName.replace('.', '_');
+        }
+        MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
+        String className = classEntity.getCu().getTypes().get(0).getName();
+        String functionName = "" + methodEntity.getMethodDeclaration().getName();
+        if (methodDeclaration.getParameters() != null){
+            functionName = functionName + methodDeclaration.getParameters().size();
+        }
+        return "" + packageName + "_" + className + "_" + functionName;
+    }
 
     /**
      * Changes any method's access modifier to {@code public}

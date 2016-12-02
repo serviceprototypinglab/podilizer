@@ -28,8 +28,7 @@ public class InvokeMethodCreator {
         NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"" +
                 ConfigReader.getConfig().getAwsSecretAccessKey() + "\"");
         NameExpr regionNameVarExpr = new NameExpr("String regionName = \"" + ConfigReader.getConfig().getRegion() + "\"");
-        String functionName = "" + compilationUnit.getPackage().getName() + compilationUnit.getTypes().get(0).getName() +
-                methodDeclaration.getName();
+        String functionName =UtilityClass.generateLumbdaName(methodEntity);
         NameExpr functionNameVarExpr = new NameExpr("String functionName = \"" + functionName + "\"");
         NameExpr regionVarExpr = new NameExpr("Region region");
         NameExpr credentialsVarExpr = new NameExpr("AWSCredentials credentials");

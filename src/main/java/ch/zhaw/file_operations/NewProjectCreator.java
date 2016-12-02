@@ -24,10 +24,12 @@ import static ch.zhaw.file_operations.UtilityClass.*;
 public class NewProjectCreator {
     private String newPath;
     private String oldPath;
+    private boolean uploadingFlag;
 
-    public NewProjectCreator(){
+    public NewProjectCreator(boolean uploadingFlag){
         newPath = ConfigReader.getConfig().getNewPath();
         oldPath = ConfigReader.getConfig().getPath();
+        this.uploadingFlag = uploadingFlag;
     }
 
     void copyProject() throws IOException, TooManyMainMethodsException {
@@ -47,7 +49,7 @@ public class NewProjectCreator {
     private void create() throws TooManyMainMethodsException {
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
         SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld);
-        classTreeCreator.build();
+        classTreeCreator.build(uploadingFlag);
 
     }
 }
