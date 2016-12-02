@@ -142,6 +142,12 @@ public class InvokeMethodCreator {
             ASTHelper.addStmt(bodyBlock, returnExpr);
         }
     }
+
+    /**
+     * Generates the package names for Input and Output types of certain function
+     * @param methodEntity source method for function
+     * @return the {@code String} of package name
+     */
     private String getSupportClassPackage(MethodEntity methodEntity){
         String result = "awsl.";
         String packageStr = methodEntity.getClassEntity().getCu().getPackage().getName().toString();
