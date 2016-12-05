@@ -26,6 +26,11 @@ So in common using this tool allows th e customer to make Java project available
   ```
   java -jar target/translator-java-1.0-SNAPSHOT.jar upload
   ```
-
-
-
+## Restrictions for the input project
+The research is on the early stage so there are some issues to be implemented:
+ * Methods of project shouldn't use 'this'
+ * All the code should be in the folder named 'src' inside the project folder('path:' in the jyaml config file)
+ * Could appear bugs connected with namespaces
+ * Methods in classes that contain inner classes are not processed for the Lambda Functions. It means that such methods
+    are not separated on the different Lambda Function but still run.
+ * May be there are some other restrictions that we lost and it can cause exceptions or incorrect result.
