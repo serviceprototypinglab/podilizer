@@ -1,7 +1,8 @@
-path: <old path>
-newPath: <new path>
+path:                   # the path of project to be translated. Example: 'path: /etc/username/ProjectName'
+newPath:                # the path for new translated project created by tool. Example: 'newPath: /etc/username/NewProjectName'.
+                        # If such folder is already exists, it will be deleted.
 
-region: <region of created lambda functions>
-role: <AWS execution role>
-awsAccessKeyId:
-awsSecretAccessKey:
+region:                 # the AWS region for created Lambda functions. Example: 'region: eu-west-2'
+role:                   # execution role of the result functions
+awsAccessKeyId:         # your Access Key Id provided by AWS
+awsSecretAccessKey:     # your Secret Access Key provided by AWS
