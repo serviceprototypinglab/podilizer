@@ -33,7 +33,6 @@ public class NewProjectCreator {
     }
 
     void copyProject() throws IOException, TooManyMainMethodsException {
-        System.out.println(newPath);
         FileUtils.deleteDirectory(newPath);
         FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
         addLibs();

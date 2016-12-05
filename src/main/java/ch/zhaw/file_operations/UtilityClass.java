@@ -305,14 +305,14 @@ public class UtilityClass {
             makeMethodPublic(method.getMethodDeclaration());
         }
     }
-    public static String generateLumbdaName(String path){
+    public static String generateLambdaName(String path){
         String cut = "" + ConfigReader.getConfig().getNewPath() +
                 "/LambdaProjects/";
         path = path.substring(cut.length(), path.length());
         path = path.replace("/", "_");
         return path;
     }
-    public static String generateLumbdaName(MethodEntity methodEntity){
+    public static String generateLambdaName(MethodEntity methodEntity){
         String packageName = "";
         ClassEntity classEntity = methodEntity.getClassEntity();
         if(classEntity.getCu().getPackage() != null){

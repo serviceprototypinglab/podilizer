@@ -5,12 +5,10 @@ import japa.parser.ast.Node;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
 import japa.parser.ast.expr.ObjectCreationExpr;
-import org.apache.maven.shared.invoker.MavenInvocationException;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
-import java.net.URISyntaxException;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -82,7 +80,7 @@ public class SupportClassTreeCreator {
                         writeCuToFile(lambdaPath + "/OutputType.java", getOutputClass(methodEntity, true));
                         writeCuToFile(lambdaPath + "/InputType.java", getInputClass(methodEntity, true));
                         CompilationUnit cuToWrite = lambdaFunction.getNewCU();
-                                writeCuToFile(lambdaPath + "/LambdaFunction.java", cuToWrite);
+                        writeCuToFile(lambdaPath + "/LambdaFunction.java", cuToWrite);
                     }
                 }
 
@@ -106,7 +104,7 @@ public class SupportClassTreeCreator {
             }
             jarBuilder.createJar(path);
             if (uploadFlag){
-                JarUploader jarUploader = new JarUploader(UtilityClass.generateLumbdaName(path),
+                JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path),
                         "lambda-java-example-1.0-SNAPSHOT.jar",
                         Constants.FUNCTION_PACKAGE + "Lambda Function::handleRequest", 60, 1024);
                 jarUploader.uploadFunction();

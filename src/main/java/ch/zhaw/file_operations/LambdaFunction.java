@@ -36,7 +36,7 @@ public class LambdaFunction {
 
     public void create(){
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
-        CompilationUnit newCU = new CompilationUnit();
+        newCU = new CompilationUnit();
         List<ImportDeclaration> imports;
         if (methodEntity.getClassEntity().getCu().getImports() != null){
             imports = new ArrayList<>(methodEntity.getClassEntity().getCu().getImports());

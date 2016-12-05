@@ -26,7 +26,7 @@ So in common using this tool allows th e customer to make Java project available
   ```
   java -jar target/translator-java-1.0-SNAPSHOT.jar upload
   ```
-    
+
 ## Restrictions for the input project
 The research is on the early stage so there are some issues to be implemented:
  * Methods of project shouldn't use 'this'
