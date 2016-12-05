@@ -1,8 +1,7 @@
 path: <old path>
 newPath: <new path>
-fileName: <file name>
+
 region: <region of created lambda functions>
 role: <AWS execution role>
-mavenHome: <maven home path>
 awsAccessKeyId:
 awsSecretAccessKey:

@@ -72,7 +72,6 @@ public class JarBuilder {
         request.setGoals( Arrays.asList( "clean", "install" ) );
 
         Invoker invoker = new DefaultInvoker();
-        invoker.setMavenHome(new File("/usr/share/maven"));
         invoker.execute( request );
     }
 
