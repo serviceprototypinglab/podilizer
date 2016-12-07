@@ -3,6 +3,7 @@ package ch.zhaw.file_operations;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.OutputStream;
 
 class JarUploader {
     private String region = ConfigReader.getConfig().getRegion();
@@ -34,9 +35,14 @@ class JarUploader {
                 public void run() {
                     BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     String line = null;
+                    BufferedReader outErrors = new BufferedReader(new InputStreamReader(process.getErrorStream()));
+                    String lineError = null;
                     try {
                         while ((line = input.readLine()) != null)
                             System.out.println(line);
+                        while ((lineError = outErrors.readLine()) != null){
+                            System.err.println(lineError);
+                        }
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -65,6 +71,14 @@ class JarUploader {
                 " --runtime " + runtime +
                 " --timeout " + timeout +
                 " --memory-size " + memorySize;
+        System.out.println(result);
+        return result;
+    }
+
+    private String getDeleteCommand(){
+        String result = "sudo aws lambda delete-function " +
+                "--function-name " + functionName;
+        System.out.println(result);
         return result;
     }
 
@@ -72,6 +86,7 @@ class JarUploader {
      * Creates Lambda Function on AWS and uploads the source code jar
      */
     void uploadFunction(){
+        writeIntoCMD(getDeleteCommand());
         writeIntoCMD(getCommand());
     }
 

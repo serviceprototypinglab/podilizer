@@ -105,8 +105,8 @@ public class SupportClassTreeCreator {
             jarBuilder.createJar(path);
             if (uploadFlag){
                 JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path),
-                        "lambda-java-example-1.0-SNAPSHOT.jar",
-                        Constants.FUNCTION_PACKAGE + "Lambda Function::handleRequest", 60, 1024);
+                        path +  "/target/lambda-java-example-1.0-SNAPSHOT.jar",
+                        Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024);
                 jarUploader.uploadFunction();
                 // TODO: 12/2/16 Fix the problem with missing information when function is uploading
                 System.out.println("uploading done here");
