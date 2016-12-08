@@ -109,7 +109,7 @@ public class SupportClassTreeCreator {
                         Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024);
                 jarUploader.uploadFunction();
                 // TODO: 12/2/16 Fix the problem with missing information when function is uploading
-                System.out.println("uploading done here");
+                //System.out.println("uploading done here");
             }
         }
     }

@@ -78,7 +78,7 @@ class JarUploader {
     private String getDeleteCommand(){
         String result = "sudo aws lambda delete-function " +
                 "--function-name " + functionName;
-        System.out.println(result);
+        //System.out.println(result);
         return result;
     }
 
