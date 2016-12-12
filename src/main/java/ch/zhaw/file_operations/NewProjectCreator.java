@@ -10,6 +10,19 @@ public class NewProjectCreator {
     private String oldPath;
     private boolean uploadingFlag;
 
+    public NewProjectCreator(String resultDir, boolean uploadingFlag){
+        oldPath = new File(".").getAbsolutePath();
+        newPath = resultDir;
+        this.uploadingFlag = uploadingFlag;
+
+    }
+
+    public NewProjectCreator(String sourceDir, String resultDir, boolean uploadingFlag) {
+        oldPath = sourceDir;
+        newPath = resultDir;
+        this.uploadingFlag = uploadingFlag;
+    }
+
     public NewProjectCreator(boolean uploadingFlag) {
         newPath = ConfigReader.getConfig().getNewPath();
         oldPath = ConfigReader.getConfig().getPath();
@@ -17,6 +30,7 @@ public class NewProjectCreator {
     }
 
     void copyProject() throws IOException {
+        System.out.println(new File(".").getAbsolutePath());
         FileUtils.deleteDirectory(newPath);
         FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
         addLibs();
