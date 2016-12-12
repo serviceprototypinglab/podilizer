@@ -1,11 +1,9 @@
 package ch.zhaw.file_operations;
 
-import ch.zhaw.exceptions.TooManyMainMethodsException;
 import japa.parser.ast.body.ModifierSet;
 import japa.parser.ast.expr.NameExpr;
 
 import java.io.IOException;
-import java.io.Serializable;
 import java.nio.file.*;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.ArrayList;
@@ -103,30 +101,6 @@ public class JavaProjectEntity{
 
         }
         return result;
-    }
-
-    public ClassEntity getMainClass() throws TooManyMainMethodsException {
-        Iterator<ClassEntity> classEntityIterator = classEntities.iterator();
-        ClassEntity result = null;
-        while (classEntityIterator.hasNext()){
-            ClassEntity classEntity = classEntityIterator.next();
-            //System.out.println(classEntity.getMainMethod());
-            if (classEntity.getMainMethod() != null){
-                result = classEntity;
-                mainCount++;
-            }
-        }
-        if (mainCount > 1){
-            throw new TooManyMainMethodsException();
-        }
-            mainCount = 0;
-            return result;
-    }
-    public void printClasses(){
-        Iterator<ClassEntity> classEntityIterator = classEntities.iterator();
-        while (classEntityIterator.hasNext()){
-            System.out.println(classEntityIterator.next().getPath());
-        }
     }
 
     public List<NameExpr> getMethodEntities() {
