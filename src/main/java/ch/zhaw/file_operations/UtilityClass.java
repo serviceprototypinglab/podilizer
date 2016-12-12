@@ -21,7 +21,7 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class UtilityClass {
-    public static void writeCuToFile(String path, CompilationUnit cu){
+    public static void writeCuToFile(String path, CompilationUnit cu) {
         try {
             PrintWriter writer = new PrintWriter(path, "UTF-8");
             writer.print(cu);
@@ -30,20 +30,23 @@ public class UtilityClass {
             e.printStackTrace();
         }
     }
-    public static String firstLetterToUpperCase(String string){
+
+    public static String firstLetterToUpperCase(String string) {
         String first = string.substring(0, 1);
         String second = string.substring(1, string.length());
         first = first.toUpperCase();
         return first + second;
     }
-    public static boolean isFieldAccessible(MethodDeclaration methodDeclaration, FieldDeclaration fieldDeclaration){
+
+    public static boolean isFieldAccessible(MethodDeclaration methodDeclaration, FieldDeclaration fieldDeclaration) {
         boolean result = true;
-        if (ModifierSet.isStatic(methodDeclaration.getModifiers()) & !ModifierSet.isStatic(fieldDeclaration.getModifiers())){
+        if (ModifierSet.isStatic(methodDeclaration.getModifiers()) & !ModifierSet.isStatic(fieldDeclaration.getModifiers())) {
             result = false;
         }
         return result;
     }
-    private static CompilationUnit createInPutType(MethodEntity methodEntity){
+
+    private static CompilationUnit createInPutType(MethodEntity methodEntity) {
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
         CompilationUnit inputCu = new CompilationUnit();
         ClassOrInterfaceDeclaration declaration =
@@ -51,10 +54,10 @@ public class UtilityClass {
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
         ASTHelper.addTypeDeclaration(inputCu, declaration);
         ArrayList<String> fieldsNames = new ArrayList<>();
-        if (fields != null){
-            for (FieldDeclaration field:
+        if (fields != null) {
+            for (FieldDeclaration field :
                     fields) {
-                if (isFieldAccessible(methodEntity.getMethodDeclaration(), field)){
+                if (isFieldAccessible(methodEntity.getMethodDeclaration(), field)) {
                     for (VariableDeclarator var :
                             field.getVariables()) {
                         fieldsNames.add(var.getId().getName());
@@ -64,7 +67,7 @@ public class UtilityClass {
                 }
             }
         }
-        if (parameters != null){
+        if (parameters != null) {
             for (Parameter param :
                     parameters) {
                 FieldDeclaration fieldDeclaration =
@@ -75,36 +78,38 @@ public class UtilityClass {
         }
         return inputCu;
     }
-    public static VariableDeclarator getFieldNameFromParam(VariableDeclaratorId param, ArrayList<String> fieldsNames){
+
+    public static VariableDeclarator getFieldNameFromParam(VariableDeclaratorId param, ArrayList<String> fieldsNames) {
         String result = param.getName();
-        if (fieldsNames.contains(result)){
+        if (fieldsNames.contains(result)) {
             result = result + "1";
             result = getFieldNameFromParam(new VariableDeclaratorId(result),
                     fieldsNames).getId().getName();
         }
         return new VariableDeclarator(new VariableDeclaratorId(result));
     }
-    private static CompilationUnit createOutPutType(MethodEntity methodEntity){
+
+    private static CompilationUnit createOutPutType(MethodEntity methodEntity) {
         CompilationUnit outputCu = new CompilationUnit();
         ClassOrInterfaceDeclaration declaration =
                 new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "OutputType");
         ASTHelper.addTypeDeclaration(outputCu, declaration);
         List<FieldDeclaration> fields = methodEntity.getClassEntity().getFields();
-        for (FieldDeclaration field:
+        for (FieldDeclaration field :
                 fields) {
-            if (!ModifierSet.isFinal(field.getModifiers())){
+            if (!ModifierSet.isFinal(field.getModifiers())) {
                 FieldDeclaration tmp = new FieldDeclaration(ModifierSet.PUBLIC, field.getType(), field.getVariables());
                 ASTHelper.addMember(declaration, tmp);
             }
         }
         Type returnType = methodEntity.getMethodDeclaration().getType();
-        if (!returnType.equals(ASTHelper.VOID_TYPE)){
+        if (!returnType.equals(ASTHelper.VOID_TYPE)) {
             FieldDeclaration fieldDeclaration =
                     new FieldDeclaration(ModifierSet.PUBLIC, returnType, new VariableDeclarator(
                             new VariableDeclaratorId(methodEntity.getMethodDeclaration().getName() + "Result")));
             ASTHelper.addMember(declaration, fieldDeclaration);
         }
-        if (methodEntity.getMethodDeclaration().getThrows() != null){
+        if (methodEntity.getMethodDeclaration().getThrows() != null) {
             Type exception = new ClassOrInterfaceType("Exception");
             FieldDeclaration exceptionField = new FieldDeclaration(ModifierSet.PUBLIC, exception,
                     new VariableDeclarator(new VariableDeclaratorId("LambdaException")));
@@ -117,45 +122,48 @@ public class UtilityClass {
         return outputCu;
 
     }
-    public static List<ImportDeclaration> generateImportsList(MethodEntity methodEntity){
+
+    public static List<ImportDeclaration> generateImportsList(MethodEntity methodEntity) {
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         List<ImportDeclaration> imports;
-        if (methodEntity.getClassEntity().getCu().getImports() != null){
+        if (methodEntity.getClassEntity().getCu().getImports() != null) {
             imports = new ArrayList<>(methodEntity.getClassEntity().getCu().getImports());
-        }else {
+        } else {
             imports = new ArrayList<>();
         }
-        if (cu.getPackage() != null){
-            String packageName  = cu.getPackage().getName().toString() + ".*";
+        if (cu.getPackage() != null) {
+            String packageName = cu.getPackage().getName().toString() + ".*";
             ImportDeclaration selfImport = new ImportDeclaration(new NameExpr(packageName), false, false);
-            if (!imports.contains(selfImport)){
+            if (!imports.contains(selfImport)) {
                 imports.add(selfImport);
             }
         }
         return imports;
     }
-    private static PackageDeclaration generatePackage(MethodEntity methodEntity, boolean isForCloud){
+
+    private static PackageDeclaration generatePackage(MethodEntity methodEntity, boolean isForCloud) {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         String oldPackage = "." + compilationUnit.getPackage().getName().toString();
         String methodPackage = methodDeclaration.getName();
-        if (methodDeclaration.getParameters() != null){
+        if (methodDeclaration.getParameters() != null) {
             methodPackage = methodPackage + methodDeclaration.getParameters().size();
         }
         NameExpr packageNameExpr;
-        if (isForCloud){
+        if (isForCloud) {
             packageNameExpr = new NameExpr(Constants.FUNCTION_PACKAGE);
-        }else{
+        } else {
             packageNameExpr = new NameExpr("awsl" +
                     oldPackage + "." + compilationUnit.getTypes().get(0).getName() + "." +
                     methodPackage);
         }
         return new PackageDeclaration(packageNameExpr);
     }
-    private static CompilationUnit createGetSet(CompilationUnit compilationUnit, MethodEntity methodEntity, boolean isForCloud){
-        if (isForCloud){
+
+    private static CompilationUnit createGetSet(CompilationUnit compilationUnit, MethodEntity methodEntity, boolean isForCloud) {
+        if (isForCloud) {
             compilationUnit.setImports(generateImportsList(methodEntity));
-        }else{
+        } else {
             compilationUnit.setImports(generateImportsList(methodEntity));
         }
         compilationUnit.setPackage(generatePackage(methodEntity, isForCloud));
@@ -169,7 +177,7 @@ public class UtilityClass {
         BlockStmt constrBlock = new BlockStmt();
 
         constructor.setBlock(constrBlock);
-        if (fieldDeclarationList.size() > 0){
+        if (fieldDeclarationList.size() > 0) {
             ConstructorDeclaration emptyConstructor = new ConstructorDeclaration(ModifierSet.PUBLIC,
                     compilationUnit.getTypes().get(0).getName());
             BlockStmt emptyConstrBlock = new BlockStmt();
@@ -179,7 +187,7 @@ public class UtilityClass {
         ArrayList<String> fieldsNames = new ArrayList<>();
         for (FieldDeclaration field :
                 fieldDeclarationList) {
-            for (VariableDeclarator var:
+            for (VariableDeclarator var :
                     field.getVariables()) {
                 Parameter constrParam = new Parameter(field.getType(), var.getId());
                 constrParameters.add(constrParam);
@@ -212,8 +220,9 @@ public class UtilityClass {
         }
         constructor.setParameters(constrParameters);
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
-        return  compilationUnit;
+        return compilationUnit;
     }
+
     private static class FieldsVisitor extends VoidVisitorAdapter {
         private List<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
 
@@ -222,17 +231,20 @@ public class UtilityClass {
             fieldDeclarationList.add(n);
             super.visit(n, arg);
         }
+
         List<FieldDeclaration> getFieldDeclarationList() {
             return fieldDeclarationList;
         }
     }
 
-    public static CompilationUnit getInputClass(MethodEntity methodEntity, boolean isForCloud){
+    public static CompilationUnit getInputClass(MethodEntity methodEntity, boolean isForCloud) {
         return createGetSet(createInPutType(methodEntity), methodEntity, isForCloud);
     }
-    public static CompilationUnit getOutputClass(MethodEntity methodEntity, boolean isForCloud){
+
+    public static CompilationUnit getOutputClass(MethodEntity methodEntity, boolean isForCloud) {
         return createGetSet(createOutPutType(methodEntity), methodEntity, isForCloud);
     }
+
     public static List<FieldDeclaration> getOnlyStaticFields(List<FieldDeclaration> fields) {
         List<FieldDeclaration> staticFields = new ArrayList<>();
         for (FieldDeclaration field :
@@ -243,17 +255,18 @@ public class UtilityClass {
         }
         return staticFields;
     }
-    public static CompilationUnit translateClass(ClassEntity classEntity){
+
+    public static CompilationUnit translateClass(ClassEntity classEntity) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
         for (Node node :
                 cu.getTypes().get(0).getChildrenNodes()) {
-            if (node instanceof ClassOrInterfaceDeclaration){
+            if (node instanceof ClassOrInterfaceDeclaration) {
                 i++;
             }
         }
-        if (!declaration.isInterface() & i == 0){
+        if (!declaration.isInterface() & i == 0) {
             InvokeClassTranslator invokeClassTranslator = new InvokeClassTranslator(cu);
             invokeClassTranslator.addBufferByteReaderMethod();
             invokeClassTranslator.generateImports();
@@ -262,7 +275,7 @@ public class UtilityClass {
                     methodEntityList) {
                 //if the method has more then one line of code
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
-                        !methodEntity.getMethodDeclaration().getName().equals("main")){
+                        !methodEntity.getMethodDeclaration().getName().equals("main")) {
                     InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity);
                     invokeMethodCreator.createMethodInvoker();
                 }
@@ -271,17 +284,18 @@ public class UtilityClass {
         }
         return cu;
     }
-    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod){
+
+    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
         for (Node node :
                 cu.getTypes().get(0).getChildrenNodes()) {
-            if (node instanceof ClassOrInterfaceDeclaration){
+            if (node instanceof ClassOrInterfaceDeclaration) {
                 i++;
             }
         }
-        if (!declaration.isInterface() & i == 0){
+        if (!declaration.isInterface() & i == 0) {
             InvokeClassTranslator invokeClassTranslator = new InvokeClassTranslator(cu);
             invokeClassTranslator.addBufferByteReaderMethod();
             invokeClassTranslator.generateImports();
@@ -290,7 +304,7 @@ public class UtilityClass {
                     methodEntityList) {
                 //if the method has more then one line of code
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
-                        !methodEntity.getMethodDeclaration().equals(unchangedMethod.getMethodDeclaration())){
+                        !methodEntity.getMethodDeclaration().equals(unchangedMethod.getMethodDeclaration())) {
                     InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity);
                     invokeMethodCreator.createMethodInvoker();
                 }
@@ -299,31 +313,34 @@ public class UtilityClass {
         }
         return cu;
     }
-    public static void makeAllMethodsPublic(ClassEntity classEntity){
+
+    public static void makeAllMethodsPublic(ClassEntity classEntity) {
         List<MethodEntity> methods = classEntity.getFunctions();
         for (MethodEntity method :
                 methods) {
             makeMethodPublic(method.getMethodDeclaration());
         }
     }
-    public static String generateLambdaName(String path){
+
+    public static String generateLambdaName(String path) {
         String cut = "" + ConfigReader.getConfig().getNewPath() +
                 "/LambdaProjects/";
         path = path.substring(cut.length(), path.length());
         path = path.replace("/", "_");
         return path;
     }
-    public static String generateLambdaName(MethodEntity methodEntity){
+
+    public static String generateLambdaName(MethodEntity methodEntity) {
         String packageName = "";
         ClassEntity classEntity = methodEntity.getClassEntity();
-        if(classEntity.getCu().getPackage() != null){
+        if (classEntity.getCu().getPackage() != null) {
             packageName = classEntity.getCu().getPackage().getName().toString();
             packageName = packageName.replace('.', '_');
         }
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         String className = classEntity.getCu().getTypes().get(0).getName();
         String functionName = "" + methodEntity.getMethodDeclaration().getName();
-        if (methodDeclaration.getParameters() != null){
+        if (methodDeclaration.getParameters() != null) {
             functionName = functionName + methodDeclaration.getParameters().size();
         }
         return "" + packageName + "_" + className + "_" + functionName;
@@ -331,21 +348,22 @@ public class UtilityClass {
 
     /**
      * Changes any method's access modifier to {@code public}
+     *
      * @param methodDeclaration {@code MethodDeclaration} to be changed
      */
-    public static void makeMethodPublic(MethodDeclaration methodDeclaration){
+    public static void makeMethodPublic(MethodDeclaration methodDeclaration) {
         int modifiers = methodDeclaration.getModifiers();
-        if (!ModifierSet.isPublic(modifiers)){
-            if (ModifierSet.isPrivate(modifiers)){
+        if (!ModifierSet.isPublic(modifiers)) {
+            if (ModifierSet.isPrivate(modifiers)) {
                 modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PRIVATE);
                 modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
                 methodDeclaration.setModifiers(modifiers);
-            }else{
-                if (ModifierSet.isProtected(modifiers)){
+            } else {
+                if (ModifierSet.isProtected(modifiers)) {
                     modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PROTECTED);
                     modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
                     methodDeclaration.setModifiers(modifiers);
-                }else{
+                } else {
                     modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
                     methodDeclaration.setModifiers(modifiers);
                 }

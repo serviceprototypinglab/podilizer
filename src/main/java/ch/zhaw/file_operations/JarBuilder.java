@@ -47,6 +47,7 @@ public class JarBuilder {
 
     /**
      * Creates project tree and pom-file for the 'Lambda function' maven project
+     *
      * @param path is the path for saving 'Lambda Function' project file tree;
      * @return the {@code String} which represents path for code in the result maven project
      * @throws IOException
@@ -62,6 +63,7 @@ public class JarBuilder {
 
     /**
      * Builds the maven project using maven sdk for java
+     *
      * @param path of the maven project to be built
      * @throws MavenInvocationException
      * @throws URISyntaxException
@@ -69,17 +71,18 @@ public class JarBuilder {
     private void mvnBuild(String path) throws MavenInvocationException, URISyntaxException {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File(path + "/pom.xml"));
-        request.setGoals( Arrays.asList( "clean", "install" ) );
+        request.setGoals(Arrays.asList("clean", "install"));
 
         Invoker invoker = new DefaultInvoker();
-        invoker.execute( request );
+        invoker.execute(request);
     }
 
     /**
      * Creates built jar of 'Lambda Function'
+     *
      * @param path of the 'Lambda Function' maven project
      */
-    public void createJar(String path){
+    public void createJar(String path) {
         try {
             mvnBuild(path);
         } catch (MavenInvocationException e) {

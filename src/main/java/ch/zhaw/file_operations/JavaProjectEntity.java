@@ -12,17 +12,14 @@ import java.util.List;
 
 /**
  * <h1>Represents java project</h1>
- *
  */
-public class JavaProjectEntity{
+public class JavaProjectEntity {
     private String pattern = "*.java";
     private Path location;
     private List<ClassEntity> classEntities;
     private List<NameExpr> methodEntities;
-    private int mainCount = 0;
 
-
-    public JavaProjectEntity(Path location){
+    public JavaProjectEntity(Path location) {
         this.location = location;
         Finder finder = new Finder(pattern);
         try {
@@ -42,13 +39,14 @@ public class JavaProjectEntity{
         private List<ClassEntity> files = new ArrayList<>();
 
 
-        Finder(String pattern){
+        Finder(String pattern) {
             matcher = FileSystems.getDefault().getPathMatcher("glob:" + pattern);
         }
+
         //calls when visits a file
-        void  find(Path file){
+        void find(Path file) {
             Path name = file.getFileName();
-            if(name != null && matcher.matches(name)){
+            if (name != null && matcher.matches(name)) {
                 files.add(new ClassEntity(file));
             }
         }
@@ -58,7 +56,8 @@ public class JavaProjectEntity{
             find(file);
             return FileVisitResult.CONTINUE;
         }
-        public List<ClassEntity> getFiles(){
+
+        public List<ClassEntity> getFiles() {
             return files;
         }
     }
@@ -73,28 +72,29 @@ public class JavaProjectEntity{
 
     /**
      * Looks for all methods(Names) over the {@code List<ClassEntity>} object
+     *
      * @param classEntities Collection of {@link ClassEntity}
      * @return the List of NameExpr objects, that are names of methods
-     *
      */
-    private List<NameExpr> findAllMethods(List<ClassEntity> classEntities){
+    private List<NameExpr> findAllMethods(List<ClassEntity> classEntities) {
         Iterator<ClassEntity> iterator = classEntities.iterator();
         List<NameExpr> result = new ArrayList<>();
-        while(iterator.hasNext()){
-                List<MethodEntity> methodEntities = iterator.next().getFunctions();
-                for (int i = 0; i < methodEntities.size(); i++){
-                    result.add(methodEntities.get(i).getMethodDeclaration().getNameExpr());
+        while (iterator.hasNext()) {
+            List<MethodEntity> methodEntities = iterator.next().getFunctions();
+            for (int i = 0; i < methodEntities.size(); i++) {
+                result.add(methodEntities.get(i).getMethodDeclaration().getNameExpr());
             }
         }
         return result;
     }
-    public List<MethodEntity> getStaticMethods(){
+
+    public List<MethodEntity> getStaticMethods() {
         List<MethodEntity> result = new ArrayList<>();
-        for (ClassEntity classEntity:
+        for (ClassEntity classEntity :
                 classEntities) {
-            for (MethodEntity method:
+            for (MethodEntity method :
                     classEntity.getFunctions()) {
-                if (ModifierSet.isStatic(method.getMethodDeclaration().getModifiers())){
+                if (ModifierSet.isStatic(method.getMethodDeclaration().getModifiers())) {
                     result.add(method);
                 }
             }

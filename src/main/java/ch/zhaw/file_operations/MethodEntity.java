@@ -14,7 +14,7 @@ import java.util.List;
 /**
  * <h1>Represents java method</h1>
  */
-public class MethodEntity{
+public class MethodEntity {
     private MethodDeclaration methodDeclaration;
     private List<MethodCallExpr> methodCallExprs;
     private ClassEntity classEntity;
@@ -37,16 +37,16 @@ public class MethodEntity{
 
     /**
      * Gives back the declaration of the class the method contains in
-     * @return {@code ClassOrInterfaceDeclaration} if parent class is not anonymous or inner class;
-     *         {@code null} if Parent node is anonymous or inner class
      *
+     * @return {@code ClassOrInterfaceDeclaration} if parent class is not anonymous or inner class;
+     * {@code null} if Parent node is anonymous or inner class
      */
-    public ClassOrInterfaceDeclaration getParentClass(){
+    public ClassOrInterfaceDeclaration getParentClass() {
         try {
-            ClassOrInterfaceDeclaration result = (ClassOrInterfaceDeclaration)methodDeclaration.getParentNode();
+            ClassOrInterfaceDeclaration result = (ClassOrInterfaceDeclaration) methodDeclaration.getParentNode();
             return result;
-        }catch (ClassCastException e){
-            ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr)methodDeclaration.getParentNode();
+        } catch (ClassCastException e) {
+            ObjectCreationExpr objectCreationExpr = (ObjectCreationExpr) methodDeclaration.getParentNode();
         }
         return null;
     }
@@ -64,6 +64,7 @@ public class MethodEntity{
      */
     private class MethodCallsVisitor extends VoidVisitorAdapter {
         private List<MethodCallExpr> methodCallExprs = new ArrayList<>();
+
         @Override
         public void visit(MethodCallExpr n, Object arg) {
             methodCallExprs.add(n);

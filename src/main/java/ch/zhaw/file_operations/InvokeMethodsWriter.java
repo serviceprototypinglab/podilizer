@@ -10,7 +10,8 @@ public class InvokeMethodsWriter {
     public InvokeMethodsWriter(JavaProjectEntity oldProject) {
         this.oldProject = oldProject;
     }
-    public void write(){
+
+    public void write() {
         List<ClassEntity> classEntityList = oldProject.getClassEntities();
         for (ClassEntity classEntity :
                 classEntityList) {

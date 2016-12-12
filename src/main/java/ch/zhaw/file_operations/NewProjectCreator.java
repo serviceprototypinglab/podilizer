@@ -10,13 +10,13 @@ public class NewProjectCreator {
     private String oldPath;
     private boolean uploadingFlag;
 
-    public NewProjectCreator(boolean uploadingFlag){
+    public NewProjectCreator(boolean uploadingFlag) {
         newPath = ConfigReader.getConfig().getNewPath();
         oldPath = ConfigReader.getConfig().getPath();
         this.uploadingFlag = uploadingFlag;
     }
 
-    void copyProject() throws IOException{
+    void copyProject() throws IOException {
         FileUtils.deleteDirectory(newPath);
         FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
         addLibs();
@@ -25,12 +25,14 @@ public class NewProjectCreator {
         invokeMethodsWriter.write();
         create();
     }
+
     private void addLibs() throws IOException {
         File libDir = new File(newPath + "/libs");
         libDir.mkdir();
         FileUtils.copyDirectoryStructure(new File("additional/libs/"), new File(newPath + "/libs/"));
     }
-    private void create(){
+
+    private void create() {
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
         SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld);
         classTreeCreator.build(uploadingFlag);

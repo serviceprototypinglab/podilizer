@@ -19,13 +19,13 @@ import java.util.List;
 /**
  * <h1> Represents .java file with class inside</h1>
  */
-public class ClassEntity implements Serializable{;
+public class ClassEntity implements Serializable {
     private Path path;
     private List<MethodEntity> functions;
     private List<FieldDeclaration> fields;
     private CompilationUnit cu;
 
-    public ClassEntity(ClassEntity classEntity){
+    public ClassEntity(ClassEntity classEntity) {
         this.path = classEntity.getPath();
         this.fields = classEntity.getFields();
         this.functions = classEntity.getFunctions();
@@ -34,19 +34,20 @@ public class ClassEntity implements Serializable{;
 
     /**
      * Transforms List<MethodDeclaration> into List<MethodEntity>
-     * @param inputList
-     * @return
+     *
+     * @param inputList you want to transform
+     * @return the list of {@code MethodEntity}
      */
-    private List<MethodEntity> listMethodEntityTransformer(List<MethodDeclaration> inputList){
+    private List<MethodEntity> listMethodEntityTransformer(List<MethodDeclaration> inputList) {
         List<MethodEntity> result = new ArrayList<>();
         Iterator<MethodDeclaration> iterator = inputList.iterator();
-        while (iterator.hasNext()){
+        while (iterator.hasNext()) {
             result.add(new MethodEntity(iterator.next(), this));
         }
         return result;
     }
 
-    public ClassEntity(Path path){
+    public ClassEntity(Path path) {
         this.path = path;
         FileInputStream in = null;
         try {
@@ -81,6 +82,7 @@ public class ClassEntity implements Serializable{;
 
         /**
          * Override method, saves visited methods into the List
+         *
          * @param n
          * @param arg
          */
@@ -94,7 +96,7 @@ public class ClassEntity implements Serializable{;
         /**
          * @return the List with Method declarations
          */
-        public List<MethodDeclaration> getMethodDeclarationList(){
+        public List<MethodDeclaration> getMethodDeclarationList() {
             return methodDeclarationList;
         }
     }
@@ -102,11 +104,12 @@ public class ClassEntity implements Serializable{;
     /**
      * Visits fields in the class
      */
-    private class FieldsVisitor extends VoidVisitorAdapter{
+    private class FieldsVisitor extends VoidVisitorAdapter {
         private List<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
 
         /**
          * Saves visited fields into List
+         *
          * @param n
          * @param arg
          */
@@ -134,14 +137,15 @@ public class ClassEntity implements Serializable{;
 
     /**
      * Looks for main method
+     *
      * @return method 'main' in the class if it exists, if not - null
      */
-    public MethodEntity getMainMethod(){
+    public MethodEntity getMainMethod() {
         MethodEntity result = null;
         Iterator<MethodEntity> methodEntityIterator = functions.iterator();
-        while (methodEntityIterator.hasNext()){
+        while (methodEntityIterator.hasNext()) {
             MethodEntity function = methodEntityIterator.next();
-            if (function.getMethodDeclaration().getName() != null && function.getMethodDeclaration().getName().equals("main")){
+            if (function.getMethodDeclaration().getName() != null && function.getMethodDeclaration().getName().equals("main")) {
                 result = function;
             }
         }

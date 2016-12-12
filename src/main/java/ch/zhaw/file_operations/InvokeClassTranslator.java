@@ -15,14 +15,16 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class InvokeClassTranslator {
-    CompilationUnit compilationUnit;
+    private CompilationUnit compilationUnit;
 
     public InvokeClassTranslator(CompilationUnit compilationUnit) {
         this.compilationUnit = compilationUnit;
     }
-    public void generateImports(){
+
+    public void generateImports() {
         compilationUnit.setImports(createImports());
     }
+
     private List<ImportDeclaration> createImports() {
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
         ImportDeclaration imd1 = new ImportDeclaration();
@@ -55,12 +57,13 @@ public class InvokeClassTranslator {
         imports.add(imd8);
         imports.add(imd9);
         imports.add(imd10);
-        if (compilationUnit.getImports() != null){
+        if (compilationUnit.getImports() != null) {
             imports.addAll(compilationUnit.getImports());
         }
         return imports;
     }
-    public void addBufferByteReaderMethod(){
+
+    public void addBufferByteReaderMethod() {
         ClassOrInterfaceType type = new ClassOrInterfaceType("String");
         MethodDeclaration declaration =
                 new MethodDeclaration(ModifierSet.STATIC + ModifierSet.PUBLIC, type, "byteBufferToString");

@@ -7,8 +7,8 @@ package ch.zhaw.file_operations;
 public class YmlEntity {
     private String path;
     private String newPath;
-    private String region;
-    private String role;
+    private String awsRegion;
+    private String awsRole;
     private String awsAccessKeyId;
     private String awsSecretAccessKey;
 
@@ -20,12 +20,12 @@ public class YmlEntity {
         return newPath;
     }
 
-    public String getRegion() {
-        return region;
+    public String getAwsRegion() {
+        return awsRegion;
     }
 
-    public String getRole() {
-        return role;
+    public String getAwsRole() {
+        return awsRole;
     }
 
     public String getAwsAccessKeyId() {
@@ -44,12 +44,12 @@ public class YmlEntity {
         this.newPath = newPath;
     }
 
-    public void setRegion(String region) {
-        this.region = region;
+    public void setAwsRegion(String awsRegion) {
+        this.awsRegion = awsRegion;
     }
 
-    public void setRole(String role) {
-        this.role = role;
+    public void setAwsRole(String awsRole) {
+        this.awsRole = awsRole;
     }
 
     public void setAwsAccessKeyId(String awsAccessKeyId) {

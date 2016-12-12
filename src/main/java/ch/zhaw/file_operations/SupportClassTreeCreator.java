@@ -24,7 +24,8 @@ public class SupportClassTreeCreator {
     public SupportClassTreeCreator(JavaProjectEntity projectEntity) {
         this.projectEntity = projectEntity;
     }
-    private List<String> create(){
+
+    private List<String> create() {
 
         List<String> lambdaPathList = new ArrayList<>();
         List<ClassEntity> classEntityList = excludeInners(projectEntity.getClassEntities());
@@ -37,20 +38,20 @@ public class SupportClassTreeCreator {
             CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i));
             for (MethodEntity methodEntity :
                     methodEntityList) {
-                if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)){
+                if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)) {
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
 
                     //if the method has more then one lien of code
                     int methodBodyLength = methodDeclaration.getBody().getStmts().size();
-                    if (methodBodyLength > 1){
+                    if (methodBodyLength > 1) {
                         String packageName = "";
-                        if(classEntity.getCu().getPackage() != null){
+                        if (classEntity.getCu().getPackage() != null) {
                             packageName = classEntity.getCu().getPackage().getName().toString();
                             packageName = packageName.replace('.', '/');
                         }
                         String className = classEntity.getCu().getTypes().get(0).getName();
                         String functionName = "" + methodDeclaration.getName();
-                        if (methodDeclaration.getParameters() != null){
+                        if (methodDeclaration.getParameters() != null) {
                             functionName = functionName + methodDeclaration.getParameters().size();
                         }
                         String path = "" + ConfigReader.getConfig().getNewPath() +
@@ -89,7 +90,8 @@ public class SupportClassTreeCreator {
         }
         return lambdaPathList;
     }
-    public void build(boolean uploadFlag){
+
+    public void build(boolean uploadFlag) {
         List<String> lambdaPathList = create();
         JarBuilder jarBuilder = new JarBuilder();
         String suppClassTreePath;
@@ -103,21 +105,20 @@ public class SupportClassTreeCreator {
                 e.printStackTrace();
             }
             jarBuilder.createJar(path);
-            if (uploadFlag){
+            if (uploadFlag) {
                 JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path),
-                        path +  "/target/lambda-java-example-1.0-SNAPSHOT.jar",
+                        path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
                         Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024);
                 jarUploader.uploadFunction();
                 // TODO: 12/2/16 Fix the problem with missing information when function is uploading
-                //System.out.println("uploading done here");
             }
         }
     }
 
     /**
-    excludes compilation units which have inner classes from List<ClassEntity>
+     * excludes compilation units which have inner classes from List<ClassEntity>
      */
-    private List<ClassEntity> excludeInners(List<ClassEntity> list){
+    private List<ClassEntity> excludeInners(List<ClassEntity> list) {
         List<ClassEntity> result = new ArrayList<>();
         for (ClassEntity classEntity :
                 list) {
@@ -129,7 +130,7 @@ public class SupportClassTreeCreator {
                     i++;
                 }
             }
-            if (i == 0){
+            if (i == 0) {
                 result.add(classEntity);
             }
         }
