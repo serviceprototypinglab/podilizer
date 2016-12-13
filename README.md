@@ -14,17 +14,17 @@ So in common using this tool allows th e customer to make Java project available
  * Checkout from repository.
  * Set up the configure file
   * Rename the "jyaml.yml.dist" file to "jyaml.yml".
-  * Fill the renamed file with your configurations
+  * Fill the renamed file with your configurations(if you don't need to upload functions you can leave 'aws' fields empty)
  * Go to project location and build:
      mvn install
- * Run the built jar with one of the options: 'translate' or 'upload'
-  * 'translate' - performs creating the new translated project and Lambda Functions building:
+ * Run the built jar with one of the options: '-t' or '-tu'
+  * '-t' - performs creating the new translated project and Lambda Functions building:
   ```
-  java -jar target/translator-java-1.0-SNAPSHOT.jar translate
+  java -jar target/translator-java-1.0-SNAPSHOT.jar -t
   ```
-  * 'upload' - do the same as 'translate' option but additionally uploads Lambda Functions into AWS Lambda service:
+  * '-tu' - do the same as '-t' option but additionally uploads Lambda Functions into AWS Lambda service:
   ```
-  java -jar target/translator-java-1.0-SNAPSHOT.jar upload
+  java -jar target/translator-java-1.0-SNAPSHOT.jar -tu
   ```
 
 ## Restrictions for the input project
@@ -34,5 +34,6 @@ The research is on the early stage so there are some issues to be implemented:
  * Could appear bugs connected with namespaces
  * Methods in classes that contain inner classes are not processed for the Lambda Functions. It means that such methods
     are not separated on the different Lambda Function but still run.
+ * Methods that contain one line or don't contain method body won't be translated.
  * May be there are some other restrictions that we lost and it can cause exceptions or incorrect result.
  * Supported Java version: 1.7
