@@ -36,8 +36,8 @@ public class InvokeMethodCreator {
         NameExpr credentialsCreate = new NameExpr("credentials = new BasicAWSCredentials(awsAccessKeyId, awsSecretAccessKey)");
         NameExpr lambdaClientCreate = new NameExpr("lambdaClient = (credentials == null) ? new AWSLambdaClient()" +
                 " : new AWSLambdaClient(credentials)");
-        NameExpr regionCreate = new NameExpr("region = Region.getAwsRegion(Regions.fromName(regionName))");
-        NameExpr regionSet = new NameExpr("lambdaClient.setAwsRegion(region)");
+        NameExpr regionCreate = new NameExpr("region = Region.getRegion(Regions.fromName(regionName))");
+        NameExpr regionSet = new NameExpr("lambdaClient.setRegion(region)");
 
         //--creating input \/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/
 
@@ -150,8 +150,8 @@ public class InvokeMethodCreator {
      */
     private String getSupportClassPackage(MethodEntity methodEntity) {
         String result = "awsl.";
-        String packageStr = methodEntity.getClassEntity().getCu().getPackage().getName().toString();
-        if (packageStr != null) {
+        if (methodEntity.getClassEntity().getCu().getPackage() != null) {
+            String packageStr = methodEntity.getClassEntity().getCu().getPackage().getName().toString();
             result = result + packageStr + ".";
         }
         String className = methodEntity.getClassEntity().getCu().getTypes().get(0).getName();

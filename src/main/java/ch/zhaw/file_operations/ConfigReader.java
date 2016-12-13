@@ -4,6 +4,8 @@ import org.ho.yaml.Yaml;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.io.InputStream;
+import java.net.URL;
 
 public class ConfigReader {
     /**
@@ -14,7 +16,8 @@ public class ConfigReader {
     public static YmlEntity getConfig() {
         YmlEntity config = null;
         try {
-            config = Yaml.loadType(new File("jyaml.yml"), YmlEntity.class);
+            File confFile = new File("jyaml.yml");
+            config = Yaml.loadType(confFile, YmlEntity.class);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

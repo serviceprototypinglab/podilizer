@@ -144,7 +144,10 @@ public class UtilityClass {
     private static PackageDeclaration generatePackage(MethodEntity methodEntity, boolean isForCloud) {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
-        String oldPackage = "." + compilationUnit.getPackage().getName().toString();
+        String oldPackage = "";
+        if (compilationUnit.getPackage() != null){
+             oldPackage = "." + compilationUnit.getPackage().getName().toString();
+        }
         String methodPackage = methodDeclaration.getName();
         if (methodDeclaration.getParameters() != null) {
             methodPackage = methodPackage + methodDeclaration.getParameters().size();

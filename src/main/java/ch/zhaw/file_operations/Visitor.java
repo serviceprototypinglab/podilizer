@@ -3,9 +3,6 @@ package ch.zhaw.file_operations;
 public class Visitor {
 
     public static void main(String[] args) throws Exception {
-        System.out.println(ConfigReader.getConfig().getPath());
-        System.out.println(ConfigReader.getConfig().getNewPath());
-        System.out.println(ConfigReader.getConfig().getAwsRegion());
         if (args.length < 1 | args.length > 3) {
             showUsage();
             return;
