@@ -3,7 +3,15 @@ package ch.zhaw.file_operations;
 public class Visitor {
 
     public static void main(String[] args) throws Exception {
-        if (args.length < 1 | args.length > 3) {
+        if (args.length == 1 & args[0].equals("-help")){
+            showHelp();
+            return;
+        }
+        if (args.length < 3 | args.length > 5) {
+            showUsage();
+            return;
+        }
+        if (!args[args.length - 2].equals("-conf")){
             showUsage();
             return;
         }
@@ -11,35 +19,32 @@ public class Visitor {
         NewProjectCreator newProjectCreator;
         switch (mod) {
             case "-t":
-                if (args.length == 3){
-                    newProjectCreator = new NewProjectCreator(args[1], args[2], false);
+                if (args.length == 5){
+                    newProjectCreator = new NewProjectCreator(args[1], args[2], false, args[4]);
                     newProjectCreator.copyProject();
                     break;
                 }
-                if (args.length == 2){
-                    newProjectCreator = new NewProjectCreator(args[1], false);
+                if (args.length == 4){
+                    newProjectCreator = new NewProjectCreator(args[1], false, args[3]);
                     newProjectCreator.copyProject();
                     break;
                 }
-                newProjectCreator = new NewProjectCreator(false);
+                newProjectCreator = new NewProjectCreator(false, args[2]);
                 newProjectCreator.copyProject();
                 break;
             case "-tu":
-                if (args.length == 3){
-                    newProjectCreator = new NewProjectCreator(args[1], args[2], true);
+                if (args.length == 5){
+                    newProjectCreator = new NewProjectCreator(args[1], args[2], true, args[4]);
                     newProjectCreator.copyProject();
                     break;
                 }
-                if (args.length == 2){
-                    newProjectCreator = new NewProjectCreator(args[1], true);
+                if (args.length == 4){
+                    newProjectCreator = new NewProjectCreator(args[1], true, args[3]);
                     newProjectCreator.copyProject();
                     break;
                 }
-                newProjectCreator = new NewProjectCreator(true);
+                newProjectCreator = new NewProjectCreator(true, args[2]);
                 newProjectCreator.copyProject();
-                break;
-            case "help":
-                showHelp();
                 break;
             default:
                 showUsage();
@@ -48,15 +53,16 @@ public class Visitor {
     }
 
     private static void showUsage() {
-        System.out.println("Usage: java -jar <built archive name> <option> [[option attribute]...]\n");
+        System.out.println("\nUsage: \n\tjava -jar <built archive name> <option> [[option attribute]...] -conf <configs folder path>\n" +
+                "\nFor more information run with option '-help'\n");
     }
     private static void showHelp(){
         String helpString = "Options:\n" +
-                "\t -t  - translate the project using path configurations from config file\n" +
-                "\t -t <result directory path> - translate the project from current path to <result directory path>\n" +
-                "\t -t <source directory path> <result directory path> - translate the project from <source directory path> " +
+                "\t '-t'  - translate the project using path configurations from config file\n" +
+                "\t '-t <result directory path>' - translate the project from current path to <result directory path>\n" +
+                "\t '-t <source directory path> <result directory path>' - translate the project from <source directory path> " +
                 "to <result directory path>\n" +
-                "\n\t Option '-tu' does the same as option '-t' but uploads created Lambda Functions after translation";
+                "\n Use option '-tu' instead of '-t' to upload created Lambda Functions after translation";
         showUsage();
         System.out.println(helpString);
     }

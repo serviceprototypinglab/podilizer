@@ -9,6 +9,7 @@ import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -16,26 +17,32 @@ import java.util.List;
 import static ch.zhaw.file_operations.UtilityClass.getInputClass;
 import static ch.zhaw.file_operations.UtilityClass.getOutputClass;
 import static ch.zhaw.file_operations.UtilityClass.writeCuToFile;
+import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class SupportClassTreeCreator {
-    JavaProjectEntity projectEntity;
-    String string;
+    private JavaProjectEntity projectEntity;
+    private String oldPath;
+    private String newPath;
+    private String confPath;
 
-    public SupportClassTreeCreator(JavaProjectEntity projectEntity) {
+    public SupportClassTreeCreator(JavaProjectEntity projectEntity, String oldPath, String newPath, String confPath) {
         this.projectEntity = projectEntity;
+        this.oldPath = oldPath;
+        this.newPath = newPath;
+        this.confPath = confPath;
     }
 
     private List<String> create() {
 
         List<String> lambdaPathList = new ArrayList<>();
         List<ClassEntity> classEntityList = excludeInners(projectEntity.getClassEntities());
-        List<ClassEntity> copyClassList = excludeInners(new JavaProjectEntity(Paths.get(ConfigReader.getConfig().getPath())).getClassEntities());
+        List<ClassEntity> copyClassList = excludeInners(new JavaProjectEntity(Paths.get(oldPath)).getClassEntities());
 
         int i = 0;
         for (ClassEntity classEntity :
                 classEntityList) {
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
-            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i));
+            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i), confPath);
             for (MethodEntity methodEntity :
                     methodEntityList) {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)) {
@@ -54,20 +61,19 @@ public class SupportClassTreeCreator {
                         if (methodDeclaration.getParameters() != null) {
                             functionName = functionName + methodDeclaration.getParameters().size();
                         }
-                        String path = "" + ConfigReader.getConfig().getNewPath() +
+                        String path = "" + newPath +
                                 "/src/awsl/" + packageName + "/" + className + "/" + functionName;
                         File file = new File(path);
                         file.mkdirs();
                         writeCuToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
                         writeCuToFile(path + "/InputType.java", getInputClass(methodEntity, false));
 
-                        String pathLambdaProject = "" + ConfigReader.getConfig().getNewPath() +
+                        String pathLambdaProject = "" + newPath +
                                 "/LambdaProjects/" + packageName + "/" + className + "/" + functionName;
                         File file1 = new File(pathLambdaProject);
                         file1.mkdirs();
-                        JarBuilder jarBuilder = new JarBuilder();
                         try {
-                            jarBuilder.createProjTree(pathLambdaProject);
+                            createProjTree(pathLambdaProject);
                         } catch (IOException e) {
                             e.printStackTrace();
                         }
@@ -93,22 +99,22 @@ public class SupportClassTreeCreator {
 
     public void build(boolean uploadFlag) {
         List<String> lambdaPathList = create();
-        JarBuilder jarBuilder = new JarBuilder();
         String suppClassTreePath;
         for (String path :
                 lambdaPathList) {
             try {
                 suppClassTreePath = path + "/src/main/java/";
-                FileUtils.copyDirectoryStructure(new File(ConfigReader.getConfig().getNewPath() + "/src/"),
+                FileUtils.copyDirectoryStructure(new File(newPath + "/src/"),
                         new File(suppClassTreePath));
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            jarBuilder.createJar(path);
+            JarBuilder jarBuilder = new JarBuilder(path);
+            jarBuilder.createJar();
             if (uploadFlag) {
-                JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path),
+                JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path, newPath),
                         path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
-                        Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024);
+                        Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024, confPath);
                 jarUploader.uploadFunction();
                 // TODO: 12/2/16 Fix the problem with missing information when function is uploading
             }
@@ -135,5 +141,20 @@ public class SupportClassTreeCreator {
             }
         }
         return result;
+    }
+
+    /**
+     * Creates project tree and pom-file for the 'Lambda function' maven project
+     *
+     * @return the {@code String} which represents path for code in the result maven project
+     * @throws IOException
+     */
+    public String createProjTree(String path) throws IOException {
+        File file = new File(path);
+        file.mkdir();
+        Files.copy(Paths.get(confPath + "/pom.xml"), Paths.get(path + "/pom.xml"), REPLACE_EXISTING);
+        file = new File(path + "/src/main/java");
+        file.mkdirs();
+        return path + "/src/main/java";
     }
 }

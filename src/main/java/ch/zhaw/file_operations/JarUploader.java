@@ -5,21 +5,23 @@ import java.io.IOException;
 import java.io.InputStreamReader;
 
 class JarUploader {
-    private String region = ConfigReader.getConfig().getAwsRegion();
+    private String region;
     private String runtime = "java8";
-    private String role = ConfigReader.getConfig().getAwsRole();
+    private String role;
     private String functionName;
     private String zipFile;
     private String handler;
     private int timeout;
     private int memorySize;
 
-    JarUploader(String functionName, String zipFile, String handler, int timeout, int memorySize) {
+    JarUploader(String functionName, String zipFile, String handler, int timeout, int memorySize, String confPath) {
         this.functionName = functionName;
         this.zipFile = zipFile;
         this.handler = handler;
         this.timeout = timeout;
         this.memorySize = memorySize;
+        this.region = ConfigReader.getConfig(confPath).getAwsRegion();
+        this.role = ConfigReader.getConfig(confPath).getAwsRole();
     }
 
     /**

@@ -8,34 +8,37 @@ import java.nio.file.Paths;
 public class NewProjectCreator {
     private String newPath;
     private String oldPath;
+    private String confPath;
     private boolean uploadingFlag;
 
-    public NewProjectCreator(String resultDir, boolean uploadingFlag){
+    public NewProjectCreator(String resultDir, boolean uploadingFlag, String confPath) {
         oldPath = new File(".").getAbsolutePath();
         newPath = resultDir;
+        this.confPath = confPath;
         this.uploadingFlag = uploadingFlag;
 
     }
 
-    public NewProjectCreator(String sourceDir, String resultDir, boolean uploadingFlag) {
+    public NewProjectCreator(String sourceDir, String resultDir, boolean uploadingFlag, String confPath) {
         oldPath = sourceDir;
         newPath = resultDir;
+        this.confPath = confPath;
         this.uploadingFlag = uploadingFlag;
     }
 
-    public NewProjectCreator(boolean uploadingFlag) {
-        newPath = ConfigReader.getConfig().getNewPath();
-        oldPath = ConfigReader.getConfig().getPath();
+    public NewProjectCreator(boolean uploadingFlag, String confPath) {
+        this.confPath = confPath;
+        newPath = ConfigReader.getConfig(confPath).getNewPath();
+        oldPath = ConfigReader.getConfig(confPath).getPath();
         this.uploadingFlag = uploadingFlag;
     }
 
     void copyProject() throws IOException {
-        System.out.println(new File(".").getAbsolutePath());
         FileUtils.deleteDirectory(newPath);
         FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
-        addLibs();
+        //addLibs();
         JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
-        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew);
+        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, confPath);
         invokeMethodsWriter.write();
         create();
     }
@@ -43,12 +46,12 @@ public class NewProjectCreator {
     private void addLibs() throws IOException {
         File libDir = new File(newPath + "/libs");
         libDir.mkdir();
-        FileUtils.copyDirectoryStructure(new File("additional/libs/"), new File(newPath + "/libs/"));
+        FileUtils.copyDirectoryStructure(new File(confPath + "/libs/"), new File(newPath + "/libs/"));
     }
 
     private void create() {
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
-        SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld);
+        SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld, oldPath, newPath, confPath);
         classTreeCreator.build(uploadingFlag);
 
     }

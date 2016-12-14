@@ -6,9 +6,11 @@ import java.util.List;
 
 public class InvokeMethodsWriter {
     private JavaProjectEntity oldProject;
+    private String confPath;
 
-    public InvokeMethodsWriter(JavaProjectEntity oldProject) {
+    public InvokeMethodsWriter(JavaProjectEntity oldProject, String confPath) {
         this.oldProject = oldProject;
+        this.confPath = confPath;
     }
 
     public void write() {
@@ -16,7 +18,7 @@ public class InvokeMethodsWriter {
         for (ClassEntity classEntity :
                 classEntityList) {
             UtilityClass.makeAllMethodsPublic(classEntity);
-            CompilationUnit cu = UtilityClass.translateClass(classEntity);
+            CompilationUnit cu = UtilityClass.translateClass(classEntity, confPath);
             UtilityClass.writeCuToFile(classEntity.getPath().toString(), cu);
         }
     }

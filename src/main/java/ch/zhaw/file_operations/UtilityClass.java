@@ -145,8 +145,8 @@ public class UtilityClass {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         String oldPackage = "";
-        if (compilationUnit.getPackage() != null){
-             oldPackage = "." + compilationUnit.getPackage().getName().toString();
+        if (compilationUnit.getPackage() != null) {
+            oldPackage = "." + compilationUnit.getPackage().getName().toString();
         }
         String methodPackage = methodDeclaration.getName();
         if (methodDeclaration.getParameters() != null) {
@@ -259,7 +259,7 @@ public class UtilityClass {
         return staticFields;
     }
 
-    public static CompilationUnit translateClass(ClassEntity classEntity) {
+    public static CompilationUnit translateClass(ClassEntity classEntity, String confPath) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
@@ -279,7 +279,7 @@ public class UtilityClass {
                 //if the method has more then one line of code
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
                         !methodEntity.getMethodDeclaration().getName().equals("main")) {
-                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity);
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, confPath);
                     invokeMethodCreator.createMethodInvoker();
                 }
             }
@@ -288,7 +288,7 @@ public class UtilityClass {
         return cu;
     }
 
-    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod) {
+    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod, String confPath) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
@@ -308,7 +308,7 @@ public class UtilityClass {
                 //if the method has more then one line of code
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
                         !methodEntity.getMethodDeclaration().equals(unchangedMethod.getMethodDeclaration())) {
-                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity);
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, confPath);
                     invokeMethodCreator.createMethodInvoker();
                 }
             }
@@ -325,9 +325,8 @@ public class UtilityClass {
         }
     }
 
-    public static String generateLambdaName(String path) {
-        String cut = "" + ConfigReader.getConfig().getNewPath() +
-                "/LambdaProjects/";
+    public static String generateLambdaName(String path, String newPath) {
+        String cut = "" + newPath + "/LambdaProjects/";
         path = path.substring(cut.length(), path.length());
         path = path.replace("/", "_");
         return path;

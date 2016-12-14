@@ -14,9 +14,11 @@ import static ch.zhaw.file_operations.UtilityClass.firstLetterToUpperCase;
 
 public class InvokeMethodCreator {
     private MethodEntity methodEntity;
+    private String confPath;
 
-    public InvokeMethodCreator(MethodEntity methodEntity) {
+    public InvokeMethodCreator(MethodEntity methodEntity, String confPath) {
         this.methodEntity = methodEntity;
+        this.confPath = confPath;
     }
 
     public void createMethodInvoker() {
@@ -24,10 +26,10 @@ public class InvokeMethodCreator {
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         BlockStmt bodyBlock = new BlockStmt();
         NameExpr accessIDKeyVarExpr = new NameExpr("String awsAccessKeyId = \"" +
-                ConfigReader.getConfig().getAwsAccessKeyId() + "\"");
+                ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "\"");
         NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"" +
-                ConfigReader.getConfig().getAwsSecretAccessKey() + "\"");
-        NameExpr regionNameVarExpr = new NameExpr("String regionName = \"" + ConfigReader.getConfig().getAwsRegion() + "\"");
+                ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "\"");
+        NameExpr regionNameVarExpr = new NameExpr("String regionName = \"" + ConfigReader.getConfig(confPath).getAwsRegion() + "\"");
         String functionName = UtilityClass.generateLambdaName(methodEntity);
         NameExpr functionNameVarExpr = new NameExpr("String functionName = \"" + functionName + "\"");
         NameExpr regionVarExpr = new NameExpr("Region region");
