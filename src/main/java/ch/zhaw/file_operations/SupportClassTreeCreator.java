@@ -48,9 +48,8 @@ public class SupportClassTreeCreator {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)) {
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
 
-                    //if the method has more then one lien of code
-                    int methodBodyLength = methodDeclaration.getBody().getStmts().size();
-                    if (methodBodyLength > 1) {
+                    //if it's not 'get' ot 'set' method
+                    if (!isAccessMethod(methodDeclaration)) {
                         String packageName = "";
                         if (classEntity.getCu().getPackage() != null) {
                             packageName = classEntity.getCu().getPackage().getName().toString();
@@ -95,6 +94,16 @@ public class SupportClassTreeCreator {
             i++;
         }
         return lambdaPathList;
+    }
+    private boolean isAccessMethod(MethodDeclaration methodDeclaration){
+        String str = methodDeclaration.getName().substring(0, 3);
+        System.out.println(str);
+        if (str.equals("set") | str.equals("get")){
+            if (methodDeclaration.getBody().getStmts().size() < 2){
+                return true;
+            }
+        }
+        return false;
     }
 
     public void build(boolean uploadFlag) {

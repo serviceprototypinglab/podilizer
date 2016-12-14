@@ -38,7 +38,7 @@ So in common using this tool allows th e customer to make Java project available
   ```
   java -jar target/Podilizer-0.1.jar -t -conf /path/to/conf/folder
   ```
-  * '-tu' - do the same as '-t' option but additionally uploads Lambda Functions into AWS Lambda service:
+  * '-tu' - does the same as '-t' option but additionally uploads Lambda Functions into AWS Lambda service:
   ```
   java -jar target/Podilizer-0.1.jar -tu -conf /path/to/conf/folder
   ```
@@ -55,6 +55,8 @@ The research is on the early stage so there are some issues to be implemented:
  * Could appear bugs connected with namespaces.
  * Methods in classes that contain inner classes are not processed for the Lambda Functions. It means that such methods.
     are not separated on the different Lambda Function but still run.
- * Methods that contain one line or don't contain method body won't be translated.
+ * Access methods('get' and 'set') are not being translated. It means that if code calls the 'get'
+ or 'set' method it will perform at the same environment without uploading as separated function. The reason of such
+ decision is optimisation: uploading the one-line access method doesn't worth expended network resources during running.
  * May be there are some other restrictions that we lost and it can cause exceptions or incorrect result.
  * Supported Java version: 1.7.
