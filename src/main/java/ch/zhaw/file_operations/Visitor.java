@@ -13,46 +13,71 @@ public class Visitor {
             showUsage();
             return;
         }
-        String confPath;
-        if (contains(args)) {
-            confPath = args[args.length - 1];
-        } else {
-            confPath = new File(".").getAbsolutePath();
-        }
-
-
+        String confPath = new File("./additional/conf").getAbsolutePath();
         String mod = args[0];
         NewProjectCreator newProjectCreator;
         switch (mod) {
             case "-t":
-                if (args.length == 5) {
+                if (args[1].equals("-conf")){
+                    if (args.length > 3){
+                        showUsage();
+                        return;
+                    }
+                    newProjectCreator = new NewProjectCreator(false, args[2]);
+                    newProjectCreator.copyProject();
+                    break;
+                }
+                if (args.length == 3) {
                     newProjectCreator = new NewProjectCreator(args[1], args[2], false, confPath);
                     newProjectCreator.copyProject();
                     break;
                 }
-                if (args.length == 4) {
+                if (args.length == 2) {
                     newProjectCreator = new NewProjectCreator(args[1], false, confPath);
                     newProjectCreator.copyProject();
                     break;
                 }
-                if (args.length == 1) {
-                    newProjectCreator = new NewProjectCreator(false, confPath);
+                if (args.length == 5){
+                    newProjectCreator = new NewProjectCreator(args[1], args[2], false, args[4]);
                     newProjectCreator.copyProject();
                     break;
                 }
+                if (args.length == 4){
+                    newProjectCreator = new NewProjectCreator(args[1], false, args[3]);
+                    newProjectCreator.copyProject();
+                    break;
+                }
+                break;
             case "-tu":
-                if (args.length == 5) {
+                if (args[1].equals("-conf")){
+                    if (args.length > 3){
+                        showUsage();
+                        return;
+                    }
+                    newProjectCreator = new NewProjectCreator(true, args[2]);
+                    newProjectCreator.copyProject();
+                    break;
+                }
+                if (args.length == 3) {
                     newProjectCreator = new NewProjectCreator(args[1], args[2], true, confPath);
                     newProjectCreator.copyProject();
                     break;
                 }
-                if (args.length == 4) {
+                if (args.length == 2) {
                     newProjectCreator = new NewProjectCreator(args[1], true, confPath);
                     newProjectCreator.copyProject();
                     break;
                 }
-                newProjectCreator = new NewProjectCreator(true, confPath);
-                newProjectCreator.copyProject();
+                if (args.length == 5){
+                    newProjectCreator = new NewProjectCreator(args[1], args[2], true, args[4]);
+                    newProjectCreator.copyProject();
+                    break;
+                }
+                if (args.length == 4){
+                    newProjectCreator = new NewProjectCreator(args[1], true, args[3]);
+                    newProjectCreator.copyProject();
+                    break;
+                }
                 break;
             default:
                 showUsage();

@@ -38,11 +38,11 @@ So in common using this tool allows th e customer to make Java project available
   If '-conf' path is not specified Podilizer looks for config files in the current folder.
   * '-t' - performs creating the new translated project and Lambda Functions building:
   ```
-  java -jar Podilizer-0.1.jar -t [[option attribute]...] [-conf /path/to/conf/folder]
+  java -jar target/Podilizer-0.1.jar -t [[option attribute]...] [-conf /path/to/conf/folder]
   ```
   * '-tu' - does the same as '-t' option but additionally uploads Lambda Functions into AWS Lambda service:
   ```
-  java -jar Podilizer-0.1.jar -tu [[option attribute]...] [-conf /path/to/conf/folder]
+  java -jar target/Podilizer-0.1.jar -tu [[option attribute]...] [-conf /path/to/conf/folder]
   ```
   * Option attributes:
    * '-t [result directory path]' - translate the project from current path to [result directory path].
