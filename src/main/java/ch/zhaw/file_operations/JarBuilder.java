@@ -9,7 +9,6 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.Arrays;
 
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 /**
  * Contains tools for creating proper result project tree ind building
@@ -36,16 +35,24 @@ public class JarBuilder {
     /**
      * Builds the maven project using maven sdk for java
      *
-     * @throws MavenInvocationException
      * @throws URISyntaxException
      */
-    private void mvnBuild() throws MavenInvocationException, URISyntaxException {
+    private void mvnBuild() throws URISyntaxException {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File(path + "/pom.xml"));
         request.setGoals(Arrays.asList("clean", "install"));
 
+
         Invoker invoker = new DefaultInvoker();
-        invoker.execute(request);
+        try {
+            if (invoker.getMavenHome() == null){
+                invoker.setMavenHome(new File("/usr/share/maven/"));
+            }
+
+            invoker.execute(request);
+        } catch (MavenInvocationException e) {
+            e.printStackTrace();
+        }
     }
 
     /**
@@ -54,8 +61,6 @@ public class JarBuilder {
     public void createJar() {
         try {
             mvnBuild();
-        } catch (MavenInvocationException e) {
-            e.printStackTrace();
         } catch (URISyntaxException e) {
             e.printStackTrace();
         }

@@ -97,7 +97,6 @@ public class SupportClassTreeCreator {
     }
     private boolean isAccessMethod(MethodDeclaration methodDeclaration){
         String str = methodDeclaration.getName().substring(0, 3);
-        System.out.println(str);
         if (str.equals("set") | str.equals("get")){
             if (methodDeclaration.getBody().getStmts().size() < 2){
                 return true;
