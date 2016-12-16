@@ -45,10 +45,8 @@ So in common using this tool allows th e customer to make Java project available
   java -jar Podilizer-0.1.jar -tu [[option attribute]...] [-conf /path/to/conf/folder]
   ```
   * Option attributes:
-  
-   *'-t [result directory path]' - translate the project from current path to [result directory path].
-
-   *'-t [source directory path] [result directory path]' - translate the project from [source directory path]
+   * '-t [result directory path]' - translate the project from current path to [result directory path].
+   * '-t [source directory path] [result directory path]' - translate the project from [source directory path]
   to [result directory path].
   * For more information use '-help' option:
   ```
