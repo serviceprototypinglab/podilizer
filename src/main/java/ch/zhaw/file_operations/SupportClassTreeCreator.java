@@ -106,7 +106,9 @@ public class SupportClassTreeCreator {
     }
 
     public void build(boolean uploadFlag) {
+        Measurement m = new Measurement();
         List<String> lambdaPathList = create();
+        m.measure("translation");
         String suppClassTreePath;
         for (String path :
                 lambdaPathList) {
@@ -119,12 +121,14 @@ public class SupportClassTreeCreator {
             }
             JarBuilder jarBuilder = new JarBuilder(path);
             jarBuilder.createJar();
+            m.measure("compilation:" + path);
             if (uploadFlag) {
                 JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path, newPath),
                         path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
                         Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024, confPath);
                 jarUploader.uploadFunction();
                 // TODO: 12/2/16 Fix the problem with missing information when function is uploading
+                m.measure("translation:" + path);
             }
         }
     }

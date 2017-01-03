@@ -34,13 +34,20 @@ public class NewProjectCreator {
     }
 
     void copyProject() throws IOException {
+        Measurement m = new Measurement();
+        m.measure("start");
         FileUtils.deleteDirectory(newPath);
         FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
         //addLibs();
+        m.measure("analysis");
         JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
+        m.measure("decomposition");
         InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, confPath);
         invokeMethodsWriter.write();
+        m.measure("translation?");
         create();
+        m.measure("//verification");
+        m.measure("finish");
     }
 
     private void addLibs() throws IOException {
