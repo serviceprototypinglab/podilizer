@@ -22,6 +22,9 @@ public class InvokeMethodCreator {
     }
 
     public void createMethodInvoker() {
+        String awsAccessKeyId;
+        String awsSecretAccessKEy;
+        String awsRegion;
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         BlockStmt bodyBlock = new BlockStmt();

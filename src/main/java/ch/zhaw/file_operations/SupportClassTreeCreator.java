@@ -48,7 +48,7 @@ public class SupportClassTreeCreator {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)) {
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
 
-                    //if it's not 'get' ot 'set' method
+                    //if it's not 'get' or 'set' method
                     if (!isAccessMethod(methodDeclaration)) {
                         String packageName = "";
                         if (classEntity.getCu().getPackage() != null) {
@@ -118,8 +118,8 @@ public class SupportClassTreeCreator {
                 e.printStackTrace();
             }
             JarBuilder jarBuilder = new JarBuilder(path);
-            jarBuilder.createJar();
             if (uploadFlag) {
+                jarBuilder.createJar();
                 JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path, newPath),
                         path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
                         Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024, confPath);
