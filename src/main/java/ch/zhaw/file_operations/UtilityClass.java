@@ -1,6 +1,8 @@
 package ch.zhaw.file_operations;
 
 import japa.parser.ASTHelper;
+import japa.parser.ASTParserConstants;
+import japa.parser.ASTParserTokenManager;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.Node;
@@ -10,6 +12,8 @@ import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
+import japa.parser.ast.visitor.GenericVisitor;
+import japa.parser.ast.visitor.VoidVisitor;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.*;
@@ -320,6 +324,55 @@ public class UtilityClass {
                 methods) {
             makeMethodPublic(method.getMethodDeclaration());
         }
+    }
+    public static void addJsonAnnotations(ClassEntity classEntity){
+        MarkerAnnotationExpr propAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonProperty"));
+        MarkerAnnotationExpr ignoreAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonIgnore"));
+        List<AnnotationExpr> propAnnotations = new ArrayList<>();
+        propAnnotations.add(propAnnotationExpr);
+        List<AnnotationExpr> ignoreAnnotation = new ArrayList<>();
+        ignoreAnnotation.add(ignoreAnnotationExpr);
+
+        List<FieldDeclaration> fieldDeclarations = classEntity.getFields();
+        for (FieldDeclaration field :
+                fieldDeclarations) {
+            field.setAnnotations(propAnnotations);
+        }
+
+        List<MethodEntity> methodEntities = classEntity.getFunctions();
+        for (MethodEntity method :
+                methodEntities) {
+            MethodDeclaration methodDeclaration = method.getMethodDeclaration();
+            String methodName = methodDeclaration.getName();
+            if (methodName.startsWith("set") || methodName.startsWith("get")){
+                methodDeclaration.setAnnotations(ignoreAnnotation);
+            }
+        }
+        CompilationUnit cu = classEntity.getCu();
+        if (!hasDefaultConstructor(cu)){
+            ConstructorDeclaration constructorDeclaration =
+                    new ConstructorDeclaration(ModifierSet.PUBLIC, cu.getTypes().get(0).getName());
+            BlockStmt constructorBlock = new BlockStmt();
+            constructorDeclaration.setBlock(constructorBlock);
+            ASTHelper.addMember(cu.getTypes().get(0), constructorDeclaration);
+
+        }
+    }
+    private static boolean hasDefaultConstructor(CompilationUnit cu){
+        TypeDeclaration typeDeclaration = cu.getTypes().get(0);
+        List<BodyDeclaration> members = typeDeclaration.getMembers();
+        if (members != null){
+            for (BodyDeclaration body :
+                    members) {
+                if (body instanceof ConstructorDeclaration) {
+                    ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) body;
+                    if (constructorDeclaration.getParameters() == null){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public static String generateLambdaName(String path, String newPath) {

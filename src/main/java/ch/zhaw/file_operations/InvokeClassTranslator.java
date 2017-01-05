@@ -47,6 +47,8 @@ public class InvokeClassTranslator {
         imd9.setName(new NameExpr("java.nio.ByteBuffer"));
         ImportDeclaration imd10 = new ImportDeclaration();
         imd10.setName(new NameExpr("java.nio.charset.Charset"));
+        ImportDeclaration imd11 = new ImportDeclaration();
+        imd11.setName(new NameExpr("com.fasterxml.jackson.annotation.*"));
         imports.add(imd1);
         imports.add(imd2);
         imports.add(imd3);
@@ -57,6 +59,7 @@ public class InvokeClassTranslator {
         imports.add(imd8);
         imports.add(imd9);
         imports.add(imd10);
+        imports.add(imd11);
         if (compilationUnit.getImports() != null) {
             imports.addAll(compilationUnit.getImports());
         }

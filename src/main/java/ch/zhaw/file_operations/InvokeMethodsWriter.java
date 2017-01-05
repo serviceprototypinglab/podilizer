@@ -18,6 +18,7 @@ public class InvokeMethodsWriter {
         for (ClassEntity classEntity :
                 classEntityList) {
             UtilityClass.makeAllMethodsPublic(classEntity);
+            UtilityClass.addJsonAnnotations(classEntity);
             CompilationUnit cu = UtilityClass.translateClass(classEntity, confPath);
             UtilityClass.writeCuToFile(classEntity.getPath().toString(), cu);
         }
