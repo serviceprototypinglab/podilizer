@@ -76,6 +76,7 @@ public class InvokeMethodCreator {
         //--creating input /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
         NameExpr jsonCreate = new NameExpr("ObjectMapper objectMapper = new ObjectMapper();\n" +
+                "        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);\n" +
                 "        String json = \"\";\n" +
                 "        try {\n" +
                 "            json = objectMapper.writeValueAsString(inputType);\n" +

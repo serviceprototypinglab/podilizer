@@ -42,7 +42,7 @@ public class InvokeClassTranslator {
         ImportDeclaration imd7 = new ImportDeclaration();
         imd7.setName(new NameExpr("com.fasterxml.jackson.core.JsonProcessingException"));
         ImportDeclaration imd8 = new ImportDeclaration();
-        imd8.setName(new NameExpr("com.fasterxml.jackson.databind.ObjectMapper"));
+        imd8.setName(new NameExpr("com.fasterxml.jackson.databind.*"));
         ImportDeclaration imd9 = new ImportDeclaration();
         imd9.setName(new NameExpr("java.nio.ByteBuffer"));
         ImportDeclaration imd10 = new ImportDeclaration();

@@ -325,6 +325,16 @@ public class UtilityClass {
             makeMethodPublic(method.getMethodDeclaration());
         }
     }
+    public static void makeConstructorsPublic(ClassEntity classEntity){
+        CompilationUnit cu = classEntity.getCu();
+        List<BodyDeclaration> bodyDeclarations = cu.getTypes().get(0).getMembers();
+        for (BodyDeclaration member :
+                bodyDeclarations) {
+            if (member instanceof ConstructorDeclaration) {
+                makeConstructorPublic((ConstructorDeclaration) member);
+            }
+        }
+    }
     public static void addJsonAnnotations(ClassEntity classEntity){
         MarkerAnnotationExpr propAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonProperty"));
         MarkerAnnotationExpr ignoreAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonIgnore"));
@@ -418,6 +428,45 @@ public class UtilityClass {
                 } else {
                     modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
                     methodDeclaration.setModifiers(modifiers);
+                }
+            }
+        }
+    }
+    public static void makeConstructorPublic(ConstructorDeclaration constructorDeclaration) {
+        int modifiers = constructorDeclaration.getModifiers();
+        if (!ModifierSet.isPublic(modifiers)) {
+            if (ModifierSet.isPrivate(modifiers)) {
+                modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PRIVATE);
+                modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                constructorDeclaration.setModifiers(modifiers);
+            } else {
+                if (ModifierSet.isProtected(modifiers)) {
+                    modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PROTECTED);
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    constructorDeclaration.setModifiers(modifiers);
+                } else {
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    constructorDeclaration.setModifiers(modifiers);
+                }
+            }
+        }
+    }
+    public static void makeClassPublic(CompilationUnit cu) {
+        TypeDeclaration typeDeclaration = cu.getTypes().get(0);
+        int modifiers = typeDeclaration.getModifiers();
+        if (!ModifierSet.isPublic(modifiers)) {
+            if (ModifierSet.isPrivate(modifiers)) {
+                modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PRIVATE);
+                modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                typeDeclaration.setModifiers(modifiers);
+            } else {
+                if (ModifierSet.isProtected(modifiers)) {
+                    modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PROTECTED);
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    typeDeclaration.setModifiers(modifiers);
+                } else {
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    typeDeclaration.setModifiers(modifiers);
                 }
             }
         }

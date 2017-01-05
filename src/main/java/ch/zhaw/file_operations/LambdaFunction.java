@@ -110,9 +110,11 @@ public class LambdaFunction {
         NameExpr mapperExpr = new NameExpr("ObjectMapper objectMapper");
         ObjectCreationExpr mapperCreateExpr = new ObjectCreationExpr(null, new ClassOrInterfaceType("ObjectMapper"), null);
         AssignExpr mapperAssignExpr = new AssignExpr(mapperExpr, mapperCreateExpr, AssignExpr.Operator.assign);
+        NameExpr disableFeatureExpr = new NameExpr("objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)");
         NameExpr getStringExpr = new NameExpr("String theString = IOUtils.toString(inputStream)");
         NameExpr getInputExpr = new NameExpr("InputType inputType = objectMapper.readValue(theString, InputType.class)");
         ASTHelper.addStmt(bodyBlock, mapperAssignExpr);
+        ASTHelper.addStmt(bodyBlock, disableFeatureExpr);
         ASTHelper.addStmt(bodyBlock, getStringExpr);
         ASTHelper.addStmt(bodyBlock, getInputExpr);
         for (FieldDeclaration field :
@@ -355,7 +357,7 @@ public class LambdaFunction {
             ImportDeclaration imd5 = new ImportDeclaration();
             imd5.setName(new NameExpr("com.amazonaws.util.IOUtils"));
             ImportDeclaration imd6 = new ImportDeclaration();
-            imd6.setName(new NameExpr("com.fasterxml.jackson.databind.ObjectMapper"));
+            imd6.setName(new NameExpr("com.fasterxml.jackson.databind.*"));
             imports.add(imd5);
             imports.add(imd6);
         }else {

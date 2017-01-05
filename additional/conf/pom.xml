@@ -1,5 +1,5 @@
 <!--
-Add here your external Java libraries
+Add your project's dependencies in tish file
 -->
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
 	xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
@@ -64,6 +64,20 @@ Add here your external Java libraries
       <artifactId>jackson-annotations</artifactId>
       <version>2.8.5</version>
     </dependency>
+
+<!--For example:
+    <dependency>
+      <groupId>junit</groupId>
+      <artifactId>junit</artifactId>
+      <version>4.12</version>
+    </dependency>
+    <dependency>
+      <groupId>net.sourceforge.javacsv</groupId>
+      <artifactId>javacsv</artifactId>
+      <version>2.0</version>
+    </dependency>
+-->
+
 
   </dependencies>
 
