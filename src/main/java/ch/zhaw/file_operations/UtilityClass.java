@@ -138,6 +138,12 @@ public class UtilityClass {
             if (!imports.contains(selfImport)) {
                 imports.add(selfImport);
             }
+        }else {
+            String packageName = Constants.EXTRA_PACKAGE;
+            ImportDeclaration selfImport = new ImportDeclaration(new NameExpr(packageName), false, true);
+            if (!imports.contains(selfImport)) {
+                imports.add(selfImport);
+            }
         }
         return imports;
     }
@@ -226,7 +232,6 @@ public class UtilityClass {
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
         return compilationUnit;
     }
-
     private static class FieldsVisitor extends VoidVisitorAdapter {
         private List<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
 

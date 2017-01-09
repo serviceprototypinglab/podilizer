@@ -54,6 +54,12 @@ public class LambdaFunction {
             if (!imports.contains(selfImport)) {
                 imports.add(selfImport);
             }
+        }else {
+            String packageName = Constants.EXTRA_PACKAGE;
+            ImportDeclaration importDeclaration = new ImportDeclaration(new NameExpr(packageName), false, true);
+            if(!imports.contains(importDeclaration)){
+                imports.add(importDeclaration);
+            }
         }
         newCU.setImports(imports);
         newCU.setPackage(new PackageDeclaration(new NameExpr(Constants.FUNCTION_PACKAGE)));

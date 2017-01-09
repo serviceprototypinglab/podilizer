@@ -83,8 +83,10 @@ public class SupportClassTreeCreator {
                         lambdaDir.mkdir();
                         LambdaFunction lambdaFunction = new LambdaFunction(methodEntity, translatedClass);
                         lambdaFunction.create();
-                        writeCuToFile(lambdaPath + "/OutputType.java", getOutputClass(methodEntity, true));
-                        writeCuToFile(lambdaPath + "/InputType.java", getInputClass(methodEntity, true));
+                        CompilationUnit outputCU = getOutputClass(methodEntity, true);
+                        writeCuToFile(lambdaPath + "/OutputType.java", outputCU);
+                        CompilationUnit inputCU = getInputClass(methodEntity, true);
+                        writeCuToFile(lambdaPath + "/InputType.java", inputCU);
                         CompilationUnit cuToWrite = lambdaFunction.getNewCU();
                         writeCuToFile(lambdaPath + "/LambdaFunction.java", cuToWrite);
                     }
