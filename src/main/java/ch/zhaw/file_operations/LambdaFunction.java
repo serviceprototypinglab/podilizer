@@ -73,6 +73,9 @@ public class LambdaFunction {
                 fields) {
             ASTHelper.addMember(classDeclaration, field);
         }
+//        FieldDeclaration fieldContext = new FieldDeclaration(ModifierSet.PRIVATE,
+//                new ClassOrInterfaceType("Context"), new VariableDeclarator(new VariableDeclaratorId("context")));
+//        ASTHelper.addMember(classDeclaration, fieldContext);
         ClassOrInterfaceDeclaration type = (ClassOrInterfaceDeclaration) translatedCu.getTypes().get(0);
         List<ClassOrInterfaceType> implementsList = new ArrayList<>();
         if (streamTransactionFlag){
@@ -113,6 +116,8 @@ public class LambdaFunction {
         }
         BlockStmt bodyBlock = new BlockStmt();
         ArrayList<String> fieldsNames = new ArrayList<>();
+//        NameExpr contextSet = new NameExpr("this.context = context");
+//        ASTHelper.addStmt(bodyBlock, contextSet);
         NameExpr mapperExpr = new NameExpr("ObjectMapper objectMapper");
         ObjectCreationExpr mapperCreateExpr = new ObjectCreationExpr(null, new ClassOrInterfaceType("ObjectMapper"), null);
         AssignExpr mapperAssignExpr = new AssignExpr(mapperExpr, mapperCreateExpr, AssignExpr.Operator.assign);

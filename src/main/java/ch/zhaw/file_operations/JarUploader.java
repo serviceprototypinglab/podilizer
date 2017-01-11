@@ -11,6 +11,7 @@ class JarUploader {
     private String functionName;
     private String zipFile;
     private String handler;
+    private String confPath;
     private int timeout;
     private int memorySize;
 
@@ -22,6 +23,7 @@ class JarUploader {
         this.memorySize = memorySize;
         this.region = ConfigReader.getConfig(confPath).getAwsRegion();
         this.role = ConfigReader.getConfig(confPath).getAwsRole();
+        this.confPath = confPath;
     }
 
     /**
@@ -69,6 +71,9 @@ class JarUploader {
                 " --region " + region +
                 " --zip-file fileb://" + zipFile +
                 " --role " + role +
+                " --environment Variables={awsAccessKeyId=" + ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "," +
+                "awsSecretAccessKey=" + ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "," +
+                "awsRegion=" + ConfigReader.getConfig(confPath).getAwsRegion() + "}" +
                 " --handler " + handler +
                 " --runtime " + runtime +
                 " --timeout " + timeout +

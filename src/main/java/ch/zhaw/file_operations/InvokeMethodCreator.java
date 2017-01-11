@@ -22,17 +22,19 @@ public class InvokeMethodCreator {
     }
 
     public void createMethodInvoker() {
-        String awsAccessKeyId;
-        String awsSecretAccessKEy;
-        String awsRegion;
-        CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         BlockStmt bodyBlock = new BlockStmt();
-        NameExpr accessIDKeyVarExpr = new NameExpr("String awsAccessKeyId = \"" +
-                ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "\"");
-        NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"" +
-                ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "\"");
-        NameExpr regionNameVarExpr = new NameExpr("String regionName = \"" + ConfigReader.getConfig(confPath).getAwsRegion() + "\"");
+//        NameExpr accessIDKeyVarExpr = new NameExpr("String awsAccessKeyId = \"" +
+//                ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "\"");
+        NameExpr accessIDKeyVarExpr = new NameExpr("String awsAccessKeyId = System.getenv(\"awsAccessKeyId\")");
+//        NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"" +
+//                ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "\"");
+        NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = System.getenv(\"awsSecretAccessKey\")");
+//        NameExpr regionNameVarExpr =
+//                new NameExpr("String regionName = \"" + ConfigReader.getConfig(confPath).getAwsRegion() + "\"");
+        NameExpr regionNameVarExpr =
+                new NameExpr("String regionName = System.getenv(\"awsRegion\")");
+
         String functionName = UtilityClass.generateLambdaName(methodEntity);
         NameExpr functionNameVarExpr = new NameExpr("String functionName = \"" + functionName + "\"");
         NameExpr regionVarExpr = new NameExpr("Region region");
