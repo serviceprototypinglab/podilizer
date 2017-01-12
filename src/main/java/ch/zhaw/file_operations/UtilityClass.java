@@ -265,7 +265,7 @@ public class UtilityClass {
         return staticFields;
     }
 
-    public static CompilationUnit translateClass(ClassEntity classEntity, String confPath) {
+    public static CompilationUnit translateClass(ClassEntity classEntity, String newPath) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
@@ -285,7 +285,7 @@ public class UtilityClass {
                 //if the method has more then one line of code
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
                         !methodEntity.getMethodDeclaration().getName().equals("main")) {
-                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, confPath);
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, newPath);
                     invokeMethodCreator.createMethodInvoker();
                 }
             }
@@ -294,7 +294,7 @@ public class UtilityClass {
         return cu;
     }
 
-    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod, String confPath) {
+    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod, String newPath) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
@@ -314,7 +314,7 @@ public class UtilityClass {
                 //if the method has more then one line of code
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
                         !methodEntity.getMethodDeclaration().equals(unchangedMethod.getMethodDeclaration())) {
-                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, confPath);
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, newPath);
                     invokeMethodCreator.createMethodInvoker();
                 }
             }
@@ -477,5 +477,49 @@ public class UtilityClass {
         }
     }
 
-
+    private static FieldDeclaration createPrivateStringField(String name){
+        return new FieldDeclaration(ModifierSet.PRIVATE,
+                new ClassOrInterfaceType("String"), new VariableDeclarator(new VariableDeclaratorId(name)));
+    }
+    public static CompilationUnit createConfigEntity(){
+        ClassOrInterfaceDeclaration innerConfig = new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "AWSConfEntity");
+        String[] fieldNames = new String[]{"awsAccessKeyId", "awsSecretAccessKey", "awsRole", "awsRegion"};
+        List<FieldDeclaration> fields = new ArrayList<>();
+        for (int i = 0; i < fieldNames.length; i++){
+            ASTHelper.addMember(innerConfig, createPrivateStringField(fieldNames[i]));
+            fields.add(createPrivateStringField(fieldNames[i]));
+        }
+        for (FieldDeclaration field :
+                fields) {
+            ASTHelper.addMember(innerConfig, createGetterForSingleVar(field));
+            ASTHelper.addMember(innerConfig, createSetterForSingleVar(field));
+        }
+        CompilationUnit compilationUnit1 = new CompilationUnit();
+        ASTHelper.addTypeDeclaration(compilationUnit1, innerConfig);
+        compilationUnit1.setPackage(new PackageDeclaration(new NameExpr("awsl")));
+        return compilationUnit1;
+    }
+    private static MethodDeclaration createSetterForSingleVar(FieldDeclaration field){
+        VariableDeclaratorId varId = field.getVariables().get(0).getId();
+        Parameter parameter = new Parameter(field.getType(), varId);
+        List<Parameter> parameters = new ArrayList<>();
+        parameters.add(parameter);
+        MethodDeclaration result = new MethodDeclaration(ModifierSet.PUBLIC, ASTHelper.VOID_TYPE,
+                "set" + UtilityClass.firstLetterToUpperCase(varId.getName()), parameters);
+        NameExpr methodBodyExpr = new NameExpr("this." + varId.getName() + " = " + varId.getName());
+        BlockStmt blockStmt = new BlockStmt();
+        ASTHelper.addStmt(blockStmt, methodBodyExpr);
+        result.setBody(blockStmt);
+        return result;
+    }
+    private static MethodDeclaration createGetterForSingleVar(FieldDeclaration field){
+        VariableDeclaratorId varId = field.getVariables().get(0).getId();
+        MethodDeclaration result = new MethodDeclaration(ModifierSet.PUBLIC, field.getType(),
+                "get" + UtilityClass.firstLetterToUpperCase(varId.getName()));
+        NameExpr methodBodyExpr = new NameExpr("return " + varId.getName());
+        BlockStmt blockStmt = new BlockStmt();
+        ASTHelper.addStmt(blockStmt, methodBodyExpr);
+        result.setBody(blockStmt);
+        return result;
+    }
 }

@@ -42,7 +42,7 @@ public class SupportClassTreeCreator {
         for (ClassEntity classEntity :
                 classEntityList) {
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
-            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i), confPath);
+            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i), "");
             for (MethodEntity methodEntity :
                     methodEntityList) {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)) {
@@ -64,6 +64,7 @@ public class SupportClassTreeCreator {
                                 "/src/awsl/" + packageName + "/" + className + "/" + functionName;
                         File file = new File(path);
                         file.mkdirs();
+                        writeCuToFile(newPath + "/src/awsl/AWSConfEntity.java", UtilityClass.createConfigEntity());
                         writeCuToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
                         writeCuToFile(path + "/InputType.java", getInputClass(methodEntity, false));
 
@@ -128,6 +129,7 @@ public class SupportClassTreeCreator {
                 jarUploader.uploadFunction();
                 // TODO: 12/2/16 Fix the problem with missing information when function is uploading
             }
+
         }
     }
 

@@ -45,7 +45,7 @@ public class NewProjectCreator {
         FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
         //addLibs();
         JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
-        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, confPath);
+        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, newPath);
         invokeMethodsWriter.write();
         create();
     }
