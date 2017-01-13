@@ -22,6 +22,7 @@ public class LambdaFunction {
     private CompilationUnit translatedCu;
     private CompilationUnit newCU;
     private List<FieldDeclaration> fields;
+    private boolean streamTransactionFlag = true;
 
     public LambdaFunction() {
 
@@ -53,6 +54,12 @@ public class LambdaFunction {
             if (!imports.contains(selfImport)) {
                 imports.add(selfImport);
             }
+        }else {
+            String packageName = Constants.EXTRA_PACKAGE;
+            ImportDeclaration importDeclaration = new ImportDeclaration(new NameExpr(packageName), false, true);
+            if(!imports.contains(importDeclaration)){
+                imports.add(importDeclaration);
+            }
         }
         newCU.setImports(imports);
         newCU.setPackage(new PackageDeclaration(new NameExpr(Constants.FUNCTION_PACKAGE)));
@@ -66,9 +73,16 @@ public class LambdaFunction {
                 fields) {
             ASTHelper.addMember(classDeclaration, field);
         }
+//        FieldDeclaration fieldContext = new FieldDeclaration(ModifierSet.PRIVATE,
+//                new ClassOrInterfaceType("Context"), new VariableDeclarator(new VariableDeclaratorId("context")));
+//        ASTHelper.addMember(classDeclaration, fieldContext);
         ClassOrInterfaceDeclaration type = (ClassOrInterfaceDeclaration) translatedCu.getTypes().get(0);
         List<ClassOrInterfaceType> implementsList = new ArrayList<>();
-        implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
+        if (streamTransactionFlag){
+            implementsList.add(new ClassOrInterfaceType("RequestStreamHandler"));
+        }else {
+            implementsList.add(new ClassOrInterfaceType("RequestHandler<InputType, OutputType>"));
+        }
         if (type.getImplements() != null) {
             implementsList.addAll(type.getImplements());
         }
@@ -77,16 +91,43 @@ public class LambdaFunction {
             classDeclaration.setExtends(type.getExtends());
         }
         ASTHelper.addTypeDeclaration(newCU, classDeclaration);
-        MethodDeclaration method =
-                new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("OutputType"), "handleRequest");
+        MethodDeclaration method;
+        if (streamTransactionFlag){
+            method = new MethodDeclaration(ModifierSet.PUBLIC, ASTHelper.VOID_TYPE, "handleRequest");
+        }else {
+            method = new MethodDeclaration(ModifierSet.PUBLIC, new ClassOrInterfaceType("OutputType"), "handleRequest");
+        }
         ASTHelper.addMember(classDeclaration, method);
-
-        Parameter param1 = ASTHelper.createParameter(new ClassOrInterfaceType("InputType"), "inputType");
-        Parameter param2 = ASTHelper.createParameter(new ClassOrInterfaceType("Context"), "context");
-        ASTHelper.addParameter(method, param1);
-        ASTHelper.addParameter(method, param2);
+        if (streamTransactionFlag){
+            Parameter param1 = ASTHelper.createParameter(new ClassOrInterfaceType("InputStream"), "inputStream");
+            Parameter param2 = ASTHelper.createParameter(new ClassOrInterfaceType("OutputStream"), "outputStream");
+            Parameter param3 = ASTHelper.createParameter(new ClassOrInterfaceType("Context"), "context");
+            ASTHelper.addParameter(method, param1);
+            ASTHelper.addParameter(method, param2);
+            ASTHelper.addParameter(method, param3);
+            ArrayList<NameExpr> thrownExceptions = new ArrayList<>();
+            thrownExceptions.add(new NameExpr("IOException"));
+            method.setThrows(thrownExceptions);
+        }else {
+            Parameter param1 = ASTHelper.createParameter(new ClassOrInterfaceType("InputType"), "inputType");
+            Parameter param2 = ASTHelper.createParameter(new ClassOrInterfaceType("Context"), "context");
+            ASTHelper.addParameter(method, param1);
+            ASTHelper.addParameter(method, param2);
+        }
         BlockStmt bodyBlock = new BlockStmt();
         ArrayList<String> fieldsNames = new ArrayList<>();
+//        NameExpr contextSet = new NameExpr("this.context = context");
+//        ASTHelper.addStmt(bodyBlock, contextSet);
+        NameExpr mapperExpr = new NameExpr("ObjectMapper objectMapper");
+        ObjectCreationExpr mapperCreateExpr = new ObjectCreationExpr(null, new ClassOrInterfaceType("ObjectMapper"), null);
+        AssignExpr mapperAssignExpr = new AssignExpr(mapperExpr, mapperCreateExpr, AssignExpr.Operator.assign);
+        NameExpr disableFeatureExpr = new NameExpr("objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS)");
+        NameExpr getStringExpr = new NameExpr("String theString = IOUtils.toString(inputStream)");
+        NameExpr getInputExpr = new NameExpr("InputType inputType = objectMapper.readValue(theString, InputType.class)");
+        ASTHelper.addStmt(bodyBlock, mapperAssignExpr);
+        ASTHelper.addStmt(bodyBlock, disableFeatureExpr);
+        ASTHelper.addStmt(bodyBlock, getStringExpr);
+        ASTHelper.addStmt(bodyBlock, getInputExpr);
         for (FieldDeclaration field :
                 fields) {
             if (UtilityClass.isFieldAccessible(methodEntity.getMethodDeclaration(), field)) {
@@ -230,7 +271,7 @@ public class LambdaFunction {
         ObjectCreationExpr objectCreationExpr =
                 new ObjectCreationExpr(null, type, arguments);
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
-        NameExpr returnExpr = new NameExpr("return outputType");
+        NameExpr returnExpr = writeOutExpr();
         BlockStmt result = new BlockStmt();
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
@@ -246,7 +287,7 @@ public class LambdaFunction {
         ObjectCreationExpr objectCreationExpr =
                 new ObjectCreationExpr(null, type, arguments);
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
-        NameExpr returnExpr = new NameExpr("return outputType");
+        NameExpr returnExpr = writeOutExpr();
         BlockStmt result = new BlockStmt();
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
@@ -263,7 +304,7 @@ public class LambdaFunction {
         ObjectCreationExpr objectCreationExpr =
                 new ObjectCreationExpr(null, type, arguments);
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
-        NameExpr returnExpr = new NameExpr("return outputType");
+        NameExpr returnExpr = writeOutExpr();
         BlockStmt result = new BlockStmt();
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
@@ -281,11 +322,18 @@ public class LambdaFunction {
         ObjectCreationExpr objectCreationExpr =
                 new ObjectCreationExpr(null, type, arguments);
         AssignExpr assign = new AssignExpr(outputTypeExpr, objectCreationExpr, AssignExpr.Operator.assign);
-        NameExpr returnExpr = new NameExpr("return outputType");
+        NameExpr returnExpr = writeOutExpr();
         BlockStmt result = new BlockStmt();
         ASTHelper.addStmt(result, assign);
         ASTHelper.addStmt(result, returnExpr);
         return result;
+    }
+    private NameExpr writeOutExpr(){
+        if (streamTransactionFlag){
+            return new NameExpr("objectMapper.writeValue(outputStream, outputType);");
+        }else {
+            return new NameExpr("return outputType");
+        }
     }
 
     private List<Expression> generateArguments() {
@@ -304,15 +352,30 @@ public class LambdaFunction {
 
     private List<ImportDeclaration> createImports() {
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
-        ImportDeclaration imd1 = new ImportDeclaration();
-        imd1.setName(new NameExpr("com.amazonaws.services.lambda.runtime.RequestHandler"));
         ImportDeclaration imd2 = new ImportDeclaration();
         imd2.setName(new NameExpr("com.amazonaws.services.lambda.runtime.Context"));
         ImportDeclaration imd3 = new ImportDeclaration();
         imd3.setName(new NameExpr("com.amazonaws.services.lambda.runtime.LambdaLogger"));
-        imports.add(imd1);
         imports.add(imd2);
         imports.add(imd3);
+        if (streamTransactionFlag){
+            ImportDeclaration imd4 = new ImportDeclaration();
+            imd4.setName(new NameExpr("java.io.*"));
+            ImportDeclaration imd1 = new ImportDeclaration();
+            imd1.setName(new NameExpr("com.amazonaws.services.lambda.runtime.RequestStreamHandler"));
+            imports.add(imd4);
+            imports.add(imd1);
+            ImportDeclaration imd5 = new ImportDeclaration();
+            imd5.setName(new NameExpr("com.amazonaws.util.IOUtils"));
+            ImportDeclaration imd6 = new ImportDeclaration();
+            imd6.setName(new NameExpr("com.fasterxml.jackson.databind.*"));
+            imports.add(imd5);
+            imports.add(imd6);
+        }else {
+            ImportDeclaration imd1 = new ImportDeclaration();
+            imd1.setName(new NameExpr("com.amazonaws.services.lambda.runtime.RequestHandler"));
+            imports.add(imd1);
+        }
         return imports;
     }
 

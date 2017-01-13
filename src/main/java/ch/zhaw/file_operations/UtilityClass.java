@@ -1,6 +1,8 @@
 package ch.zhaw.file_operations;
 
 import japa.parser.ASTHelper;
+import japa.parser.ASTParserConstants;
+import japa.parser.ASTParserTokenManager;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
 import japa.parser.ast.Node;
@@ -10,6 +12,8 @@ import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 import japa.parser.ast.type.Type;
+import japa.parser.ast.visitor.GenericVisitor;
+import japa.parser.ast.visitor.VoidVisitor;
 import japa.parser.ast.visitor.VoidVisitorAdapter;
 
 import java.io.*;
@@ -134,6 +138,12 @@ public class UtilityClass {
             if (!imports.contains(selfImport)) {
                 imports.add(selfImport);
             }
+        }else {
+            String packageName = Constants.EXTRA_PACKAGE;
+            ImportDeclaration selfImport = new ImportDeclaration(new NameExpr(packageName), false, true);
+            if (!imports.contains(selfImport)) {
+                imports.add(selfImport);
+            }
         }
         return imports;
     }
@@ -222,7 +232,6 @@ public class UtilityClass {
         ASTHelper.addMember(compilationUnit.getTypes().get(0), constructor);
         return compilationUnit;
     }
-
     private static class FieldsVisitor extends VoidVisitorAdapter {
         private List<FieldDeclaration> fieldDeclarationList = new ArrayList<>();
 
@@ -256,7 +265,7 @@ public class UtilityClass {
         return staticFields;
     }
 
-    public static CompilationUnit translateClass(ClassEntity classEntity, String confPath) {
+    public static CompilationUnit translateClass(ClassEntity classEntity, String newPath) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
@@ -276,7 +285,7 @@ public class UtilityClass {
                 //if the method has more then one line of code
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
                         !methodEntity.getMethodDeclaration().getName().equals("main")) {
-                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, confPath);
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, newPath);
                     invokeMethodCreator.createMethodInvoker();
                 }
             }
@@ -285,7 +294,7 @@ public class UtilityClass {
         return cu;
     }
 
-    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod, String confPath) {
+    public static CompilationUnit translateClassFunction(ClassEntity classEntity, MethodEntity unchangedMethod, String newPath) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
@@ -305,7 +314,7 @@ public class UtilityClass {
                 //if the method has more then one line of code
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
                         !methodEntity.getMethodDeclaration().equals(unchangedMethod.getMethodDeclaration())) {
-                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, confPath);
+                    InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, newPath);
                     invokeMethodCreator.createMethodInvoker();
                 }
             }
@@ -320,6 +329,65 @@ public class UtilityClass {
                 methods) {
             makeMethodPublic(method.getMethodDeclaration());
         }
+    }
+    public static void makeConstructorsPublic(ClassEntity classEntity){
+        CompilationUnit cu = classEntity.getCu();
+        List<BodyDeclaration> bodyDeclarations = cu.getTypes().get(0).getMembers();
+        for (BodyDeclaration member :
+                bodyDeclarations) {
+            if (member instanceof ConstructorDeclaration) {
+                makeConstructorPublic((ConstructorDeclaration) member);
+            }
+        }
+    }
+    public static void addJsonAnnotations(ClassEntity classEntity){
+        MarkerAnnotationExpr propAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonProperty"));
+        MarkerAnnotationExpr ignoreAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonIgnore"));
+        List<AnnotationExpr> propAnnotations = new ArrayList<>();
+        propAnnotations.add(propAnnotationExpr);
+        List<AnnotationExpr> ignoreAnnotation = new ArrayList<>();
+        ignoreAnnotation.add(ignoreAnnotationExpr);
+
+        List<FieldDeclaration> fieldDeclarations = classEntity.getFields();
+        for (FieldDeclaration field :
+                fieldDeclarations) {
+            field.setAnnotations(propAnnotations);
+        }
+
+        List<MethodEntity> methodEntities = classEntity.getFunctions();
+        for (MethodEntity method :
+                methodEntities) {
+            MethodDeclaration methodDeclaration = method.getMethodDeclaration();
+            String methodName = methodDeclaration.getName();
+            if (methodName.startsWith("set") || methodName.startsWith("get")){
+                methodDeclaration.setAnnotations(ignoreAnnotation);
+            }
+        }
+        CompilationUnit cu = classEntity.getCu();
+        if (!hasDefaultConstructor(cu)){
+            ConstructorDeclaration constructorDeclaration =
+                    new ConstructorDeclaration(ModifierSet.PUBLIC, cu.getTypes().get(0).getName());
+            BlockStmt constructorBlock = new BlockStmt();
+            constructorDeclaration.setBlock(constructorBlock);
+            ASTHelper.addMember(cu.getTypes().get(0), constructorDeclaration);
+
+        }
+    }
+    private static boolean hasDefaultConstructor(CompilationUnit cu){
+        TypeDeclaration typeDeclaration = cu.getTypes().get(0);
+        List<BodyDeclaration> members = typeDeclaration.getMembers();
+        if (members != null){
+            for (BodyDeclaration body :
+                    members) {
+                if (body instanceof ConstructorDeclaration) {
+                    ConstructorDeclaration constructorDeclaration = (ConstructorDeclaration) body;
+                    if (constructorDeclaration.getParameters() == null){
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
     }
 
     public static String generateLambdaName(String path, String newPath) {
@@ -369,6 +437,89 @@ public class UtilityClass {
             }
         }
     }
+    public static void makeConstructorPublic(ConstructorDeclaration constructorDeclaration) {
+        int modifiers = constructorDeclaration.getModifiers();
+        if (!ModifierSet.isPublic(modifiers)) {
+            if (ModifierSet.isPrivate(modifiers)) {
+                modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PRIVATE);
+                modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                constructorDeclaration.setModifiers(modifiers);
+            } else {
+                if (ModifierSet.isProtected(modifiers)) {
+                    modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PROTECTED);
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    constructorDeclaration.setModifiers(modifiers);
+                } else {
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    constructorDeclaration.setModifiers(modifiers);
+                }
+            }
+        }
+    }
+    public static void makeClassPublic(CompilationUnit cu) {
+        TypeDeclaration typeDeclaration = cu.getTypes().get(0);
+        int modifiers = typeDeclaration.getModifiers();
+        if (!ModifierSet.isPublic(modifiers)) {
+            if (ModifierSet.isPrivate(modifiers)) {
+                modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PRIVATE);
+                modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                typeDeclaration.setModifiers(modifiers);
+            } else {
+                if (ModifierSet.isProtected(modifiers)) {
+                    modifiers = ModifierSet.removeModifier(modifiers, ModifierSet.PROTECTED);
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    typeDeclaration.setModifiers(modifiers);
+                } else {
+                    modifiers = ModifierSet.addModifier(modifiers, ModifierSet.PUBLIC);
+                    typeDeclaration.setModifiers(modifiers);
+                }
+            }
+        }
+    }
 
-
+    private static FieldDeclaration createPrivateStringField(String name){
+        return new FieldDeclaration(ModifierSet.PRIVATE,
+                new ClassOrInterfaceType("String"), new VariableDeclarator(new VariableDeclaratorId(name)));
+    }
+    public static CompilationUnit createConfigEntity(){
+        ClassOrInterfaceDeclaration innerConfig = new ClassOrInterfaceDeclaration(ModifierSet.PUBLIC, false, "AWSConfEntity");
+        String[] fieldNames = new String[]{"awsAccessKeyId", "awsSecretAccessKey", "awsRole", "awsRegion"};
+        List<FieldDeclaration> fields = new ArrayList<>();
+        for (int i = 0; i < fieldNames.length; i++){
+            ASTHelper.addMember(innerConfig, createPrivateStringField(fieldNames[i]));
+            fields.add(createPrivateStringField(fieldNames[i]));
+        }
+        for (FieldDeclaration field :
+                fields) {
+            ASTHelper.addMember(innerConfig, createGetterForSingleVar(field));
+            ASTHelper.addMember(innerConfig, createSetterForSingleVar(field));
+        }
+        CompilationUnit compilationUnit1 = new CompilationUnit();
+        ASTHelper.addTypeDeclaration(compilationUnit1, innerConfig);
+        compilationUnit1.setPackage(new PackageDeclaration(new NameExpr("awsl")));
+        return compilationUnit1;
+    }
+    private static MethodDeclaration createSetterForSingleVar(FieldDeclaration field){
+        VariableDeclaratorId varId = field.getVariables().get(0).getId();
+        Parameter parameter = new Parameter(field.getType(), varId);
+        List<Parameter> parameters = new ArrayList<>();
+        parameters.add(parameter);
+        MethodDeclaration result = new MethodDeclaration(ModifierSet.PUBLIC, ASTHelper.VOID_TYPE,
+                "set" + UtilityClass.firstLetterToUpperCase(varId.getName()), parameters);
+        NameExpr methodBodyExpr = new NameExpr("this." + varId.getName() + " = " + varId.getName());
+        BlockStmt blockStmt = new BlockStmt();
+        ASTHelper.addStmt(blockStmt, methodBodyExpr);
+        result.setBody(blockStmt);
+        return result;
+    }
+    private static MethodDeclaration createGetterForSingleVar(FieldDeclaration field){
+        VariableDeclaratorId varId = field.getVariables().get(0).getId();
+        MethodDeclaration result = new MethodDeclaration(ModifierSet.PUBLIC, field.getType(),
+                "get" + UtilityClass.firstLetterToUpperCase(varId.getName()));
+        NameExpr methodBodyExpr = new NameExpr("return " + varId.getName());
+        BlockStmt blockStmt = new BlockStmt();
+        ASTHelper.addStmt(blockStmt, methodBodyExpr);
+        result.setBody(blockStmt);
+        return result;
+    }
 }

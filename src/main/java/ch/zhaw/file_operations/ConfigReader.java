@@ -3,8 +3,6 @@ package ch.zhaw.file_operations;
 import org.ho.yaml.Yaml;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 public class ConfigReader {
     /**
@@ -20,6 +18,13 @@ public class ConfigReader {
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+//        try {
+//            awsAccessKeyId = Yaml.loadType(new File(""), YmlEntity.class).getAwsAccessKeyId();
+//            awsSecretAccessKey = Yaml.loadType(new File(""), YmlEntity.class).getAwsSecretAccessKey();
+//            regionName = Yaml.loadType(new File(""), YmlEntity.class).getAwsRegion();
+//        } catch (FileNotFoundException e) {
+//            e.printStackTrace();
+//        }
         return config;
     }
 }

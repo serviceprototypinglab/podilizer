@@ -1,10 +1,10 @@
 package ch.zhaw.file_operations;
 
 import japa.parser.ASTHelper;
-import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.*;
 import japa.parser.ast.expr.*;
 import japa.parser.ast.stmt.BlockStmt;
+import japa.parser.ast.stmt.IfStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
 
 import java.util.ArrayList;
@@ -14,22 +14,39 @@ import static ch.zhaw.file_operations.UtilityClass.firstLetterToUpperCase;
 
 public class InvokeMethodCreator {
     private MethodEntity methodEntity;
-    private String confPath;
+    private String newPath;
 
-    public InvokeMethodCreator(MethodEntity methodEntity, String confPath) {
+    public InvokeMethodCreator(MethodEntity methodEntity, String newPath) {
         this.methodEntity = methodEntity;
-        this.confPath = confPath;
+        this.newPath = newPath;
     }
 
     public void createMethodInvoker() {
-        CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
         BlockStmt bodyBlock = new BlockStmt();
-        NameExpr accessIDKeyVarExpr = new NameExpr("String awsAccessKeyId = \"" +
-                ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "\"");
-        NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"" +
-                ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "\"");
-        NameExpr regionNameVarExpr = new NameExpr("String regionName = \"" + ConfigReader.getConfig(confPath).getAwsRegion() + "\"");
+        NameExpr accessIDKeyVarExpr = new NameExpr("String awsAccessKeyId = \"\"");
+        NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"\"");
+        NameExpr regionNameVarExpr = new NameExpr("String regionName = \"\"");
+        BlockStmt thenIf = new BlockStmt();
+        ASTHelper.addStmt(thenIf, new NameExpr("awsAccessKeyId = System.getenv(\"awsAccessKeyId\")"));
+        ASTHelper.addStmt(thenIf, new NameExpr("awsSecretAccessKey = System.getenv(\"awsSecretAccessKey\")"));
+        ASTHelper.addStmt(thenIf, new NameExpr("regionName = System.getenv(\"awsRegion\")"));
+
+        NameExpr conditionSide1 = new NameExpr("System.getenv(\"awsAccessKeyId\")");
+        NameExpr conditionSide2 = new NameExpr("null");
+        NameExpr compare = new NameExpr(conditionSide1 + " != " + conditionSide2);
+        String confPath = newPath + "/jyaml.yml";
+        NameExpr elseExpr = new NameExpr("try {\n" +
+                "            awsAccessKeyId = Yaml.loadType(new File(\"" + confPath +"\"), AWSConfEntity.class).getAwsAccessKeyId();\n" +
+                "            awsSecretAccessKey = Yaml.loadType(new File(\"" + confPath +"\"), AWSConfEntity.class).getAwsSecretAccessKey();\n" +
+                "            regionName = Yaml.loadType(new File(\"" + confPath + "\"), AWSConfEntity.class).getAwsRegion();\n" +
+                "        } catch (FileNotFoundException e) {\n" +
+                "            e.printStackTrace();\n" +
+                "        }");
+        BlockStmt elseStmt = new BlockStmt();
+        ASTHelper.addStmt(elseStmt, elseExpr);
+        IfStmt ifStmt = new IfStmt(compare, thenIf, elseStmt);
+
         String functionName = UtilityClass.generateLambdaName(methodEntity);
         NameExpr functionNameVarExpr = new NameExpr("String functionName = \"" + functionName + "\"");
         NameExpr regionVarExpr = new NameExpr("Region region");
@@ -73,6 +90,7 @@ public class InvokeMethodCreator {
         //--creating input /\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\/\
 
         NameExpr jsonCreate = new NameExpr("ObjectMapper objectMapper = new ObjectMapper();\n" +
+                "        objectMapper.disable(SerializationFeature.FAIL_ON_EMPTY_BEANS);\n" +
                 "        String json = \"\";\n" +
                 "        try {\n" +
                 "            json = objectMapper.writeValueAsString(inputType);\n" +
@@ -93,6 +111,7 @@ public class InvokeMethodCreator {
         ASTHelper.addStmt(bodyBlock, accessIDKeyVarExpr);
         ASTHelper.addStmt(bodyBlock, accessSecretKeyVarExpr);
         ASTHelper.addStmt(bodyBlock, regionNameVarExpr);
+        ASTHelper.addStmt(bodyBlock, ifStmt);
         ASTHelper.addStmt(bodyBlock, functionNameVarExpr);
         ASTHelper.addStmt(bodyBlock, regionVarExpr);
         ASTHelper.addStmt(bodyBlock, credentialsVarExpr);

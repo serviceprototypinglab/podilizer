@@ -42,13 +42,13 @@ public class SupportClassTreeCreator {
         for (ClassEntity classEntity :
                 classEntityList) {
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
-            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i), confPath);
+            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i), "");
             for (MethodEntity methodEntity :
                     methodEntityList) {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)) {
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
 
-                    //if it's not 'get' ot 'set' method
+                    //if it's not 'get' or 'set' method
                     if (!isAccessMethod(methodDeclaration)) {
                         String packageName = "";
                         if (classEntity.getCu().getPackage() != null) {
@@ -64,6 +64,7 @@ public class SupportClassTreeCreator {
                                 "/src/awsl/" + packageName + "/" + className + "/" + functionName;
                         File file = new File(path);
                         file.mkdirs();
+                        writeCuToFile(newPath + "/src/awsl/AWSConfEntity.java", UtilityClass.createConfigEntity());
                         writeCuToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
                         writeCuToFile(path + "/InputType.java", getInputClass(methodEntity, false));
 
@@ -83,8 +84,10 @@ public class SupportClassTreeCreator {
                         lambdaDir.mkdir();
                         LambdaFunction lambdaFunction = new LambdaFunction(methodEntity, translatedClass);
                         lambdaFunction.create();
-                        writeCuToFile(lambdaPath + "/OutputType.java", getOutputClass(methodEntity, true));
-                        writeCuToFile(lambdaPath + "/InputType.java", getInputClass(methodEntity, true));
+                        CompilationUnit outputCU = getOutputClass(methodEntity, true);
+                        writeCuToFile(lambdaPath + "/OutputType.java", outputCU);
+                        CompilationUnit inputCU = getInputClass(methodEntity, true);
+                        writeCuToFile(lambdaPath + "/InputType.java", inputCU);
                         CompilationUnit cuToWrite = lambdaFunction.getNewCU();
                         writeCuToFile(lambdaPath + "/LambdaFunction.java", cuToWrite);
                     }
@@ -120,16 +123,23 @@ public class SupportClassTreeCreator {
                 e.printStackTrace();
             }
             JarBuilder jarBuilder = new JarBuilder(path);
-            jarBuilder.createJar();
             m.measure("compilation:" + path);
             if (uploadFlag) {
+                jarBuilder.createJar();
                 JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path, newPath),
                         path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
                         Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024, confPath);
                 jarUploader.uploadFunction();
+
                 // TODO: 12/2/16 Fix the problem with missing information when function is uploading
                 m.measure("upload:" + path);
             }
+
+        }
+        try {
+            FileUtils.copyFileToDirectory(confPath + "/jyaml.yml", newPath);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
