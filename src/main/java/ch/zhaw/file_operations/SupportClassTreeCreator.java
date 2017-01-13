@@ -127,9 +127,15 @@ public class SupportClassTreeCreator {
                         path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
                         Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024, confPath);
                 jarUploader.uploadFunction();
+
                 // TODO: 12/2/16 Fix the problem with missing information when function is uploading
             }
 
+        }
+        try {
+            FileUtils.copyFileToDirectory(confPath + "/jyaml.yml", newPath);
+        } catch (IOException e) {
+            e.printStackTrace();
         }
     }
 
