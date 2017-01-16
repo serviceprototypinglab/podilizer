@@ -14,17 +14,10 @@ public class ConfigReader {
     public static YmlEntity getConfig(String confPath) {
         YmlEntity config = null;
         try {
-            config = Yaml.loadType(new File(confPath + "/jyaml.yml"), YmlEntity.class);
+            config = Yaml.loadType(new File(confPath), YmlEntity.class);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
-//        try {
-//            awsAccessKeyId = Yaml.loadType(new File(""), YmlEntity.class).getAwsAccessKeyId();
-//            awsSecretAccessKey = Yaml.loadType(new File(""), YmlEntity.class).getAwsSecretAccessKey();
-//            regionName = Yaml.loadType(new File(""), YmlEntity.class).getAwsRegion();
-//        } catch (FileNotFoundException e) {
-//            e.printStackTrace();
-//        }
         return config;
     }
 }
