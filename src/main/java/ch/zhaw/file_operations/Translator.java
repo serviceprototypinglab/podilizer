@@ -28,6 +28,7 @@ public class Translator {
     }
     public void translate(){
         // TODO: 1/16/17 handle missing in project exception
+        // TODO: 1/18/17 if the outFolder is already exist ask about rewriting
         try {
             copyProject();
         } catch (IOException e) {

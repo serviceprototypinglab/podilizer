@@ -17,7 +17,7 @@ public class ProjectCreator {
         try {
             s = new Scanner(new File(outPath + "/PodilizerDescriptor.txt"));
         } catch (FileNotFoundException e) {
-            System.err.print("Podilizer descriptor is not found!!!");
+            System.err.print("Podilizer descriptor is not found!!! Please use 'translate' option before.");
         }
         ArrayList<String> list = new ArrayList<>();
         while (s.hasNext()){

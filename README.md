@@ -7,7 +7,7 @@ So in common using this tool allows th e customer to make Java project available
 
 ## Before start
  For making the project you need maven to be installed and ${maven.home} environment variable to be set. (If maven home
- is't set explicitly as environment variable tool uses default maven home path: '/usr/share/maven/').
+ is't set explicitly as environment variable, tool uses default maven home path: '/usr/share/maven/').
 
  For deploying Lambda functions you need to have account at AWS. Then you need to
   [install the AWS CLI](http://docs.aws.amazon.com/cli/latest/userguide/installing.html) and
@@ -27,7 +27,7 @@ So in common using this tool allows th e customer to make Java project available
  * Set up the configure files(additional/conf/)
   * Rename the "jyaml.yml.dist" file to "jyaml.yml".
   * Fill the renamed file with your configurations(if you don't need to upload functions you can leave 'aws' fields empty)
-  * If your input project uses some external libraries add to 'additional/conf/pom.xml' appropriate maven dependencies.
+  * If your input project uses some external libraries, add appropriate maven dependencies to 'additional/conf/pom.xml' .
  * Go to project location and build it using maven:
  ```
  $ mvn install
