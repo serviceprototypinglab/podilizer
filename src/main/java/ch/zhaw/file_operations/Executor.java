@@ -17,11 +17,12 @@ public class Executor {
 
     public Executor(){
         options.addOption(Option.builder(optionT.getKey()).longOpt(optionT.getValue()).numberOfArgs(2).
-                desc("translate the project").build());
+                desc("Translate the project. Takes two arguments: input and output projects paths").build());
         options.addOption(Option.builder(optionB.getKey()).longOpt(optionB.getValue()).hasArg().numberOfArgs(2).
-                desc("build the project").build());
+                desc("Build the project. Takes two arguments:" +
+                        " translated project to build path and path of configured pom.xml file").build());
         options.addOption(Option.builder(optionU.getKey()).longOpt(optionU.getValue()).hasArg().numberOfArgs(2).
-                desc("upload the project").build());
+                desc("Upload the project. Takes two arguments: translated and built project path and .yml conf file path").build());
         options.addOption(Option.builder("help").hasArg(false).desc("output help text").numberOfArgs(0).build());
         helpFormatter = new HelpFormatter();
     }
@@ -33,7 +34,7 @@ public class Executor {
         try {
             cmd = commandLineParser.parse(options, args);
             if (getArgNames(cmd).size() == 0){
-                System.out.println("\nThere is no options to run. Please use -help for details.\n");
+                System.err.println("\nThere is no options to run. Please use -help for details.\n");
             } else {
                 for (String option :
                         getArgNames(cmd)) {
@@ -57,7 +58,7 @@ public class Executor {
         }
         String t = optionT.getKey();
         String b = optionB.getKey();
-        String u = optionB.getKey();
+        String u = optionU.getKey();
         if (cmd.hasOption(t) & cmd.hasOption(b) & cmd.hasOption(u)){
             translateWithArgs(cmd);
             buildWithArgs(cmd);
@@ -100,21 +101,22 @@ public class Executor {
         return result;
     }
     private void optionCheck(CommandLine cmd, String option){
-        if (cmd.getOptionProperties(option).getProperty(cmd.getOptionValue(option)).equals("true")){
+        if (cmd.getOptionProperties(option) == null &&
+                cmd.getOptionProperties(option).getProperty(cmd.getOptionValue(option)).equals("true")){
             System.err.println("\nWrong usage.\n");
             helpFormatter.printHelp("Podilize", options, true);
             System.exit(1);
         }
     }
     private void translateWithArgs(CommandLine cmd){
-        System.out.println("\n---Translation started---.\n");
+        System.out.println("\n---Translation started---\n");
         startCount();
         String inPath = cmd.getOptionValues(optionT.getKey())[0];
         String outPAth = cmd.getOptionValues(optionT.getKey())[1];
 
         Translator translator = new Translator(inPath, outPAth);
         translator.translate();
-        System.out.println("\n---Translation finished in " + calculateTime() + ".---\n");
+        System.out.println("\n---Translation finished in " + calculateTime() + "---\n");
     }
     private void buildWithArgs(CommandLine cmd){
         System.out.println("\n---Building started.---\n");
@@ -124,17 +126,17 @@ public class Executor {
 
         Builder builder = new Builder(outPath, pomPath);
         builder.build();
-        System.out.println("\n---Building finished in " + calculateTime() + ".---\n");
+        System.out.println("\n---Building finished in " + calculateTime() + "---\n");
     }
     private void uploadWithArgs(CommandLine cmd){
-        System.out.println("\n---Lambda functions creating started.---\n");
+        System.out.println("\n---Lambda functions creating started---\n");
         startCount();
         String outPath = cmd.getOptionValues(optionU.getKey())[0];
         String confPath = cmd.getOptionValues(optionU.getKey())[1];
 
         LambdaCreator lambdaCreator = new LambdaCreator(outPath, confPath);
         lambdaCreator.create();
-        System.out.println("\n---Lambda functions creating finished in " + calculateTime() + ".---\n");
+        System.out.println("\n---Lambda functions creating finished in " + calculateTime() + "---\n");
     }
     private void startCount(){
         time = System.currentTimeMillis();
@@ -144,7 +146,7 @@ public class Executor {
         long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes);
         long milliseconds = millis - TimeUnit.MINUTES.toMillis(minutes) - TimeUnit.SECONDS.toMillis(seconds);
-        return String.format("%02d min,%02d sec,%03d msec", minutes,
+        return String.format("%02d min,%02d sec,%03d millisec", minutes,
                 seconds, milliseconds);
     }
 }
