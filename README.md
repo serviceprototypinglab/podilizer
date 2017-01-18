@@ -61,8 +61,7 @@ So in common using this tool allows th e customer to make Java project available
   * You can combine all of these options to run needed phases. For example if you want to run full process with one command,
   it would look like:
     ```
-    $ java -jar target/Podilizer-0.1.jar -t /home/user/in/ /home/user/out/
-    -b /home/user/out/ additional/conf/pom.xml -u /home/user/out/ additional/conf/jyaml.yml
+    $ java -jar target/Podilizer-0.1.jar -t /home/user/in/ /home/user/out/ -b /home/user/out/ additional/conf/pom.xml -u /home/user/out/ additional/conf/jyaml.yml
     ```
   * Option '-help' shows the usage of tool:
     ```

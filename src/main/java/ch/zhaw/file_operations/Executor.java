@@ -17,11 +17,11 @@ public class Executor {
 
     public Executor(){
         options.addOption(Option.builder(optionT.getKey()).longOpt(optionT.getValue()).numberOfArgs(2).
-                desc("translate the project").required().build());
+                desc("translate the project").build());
         options.addOption(Option.builder(optionB.getKey()).longOpt(optionB.getValue()).hasArg().numberOfArgs(2).
-                desc("build the project").required().build());
+                desc("build the project").build());
         options.addOption(Option.builder(optionU.getKey()).longOpt(optionU.getValue()).hasArg().numberOfArgs(2).
-                desc("upload the project").required().build());
+                desc("upload the project").build());
         options.addOption(Option.builder("help").hasArg(false).desc("output help text").numberOfArgs(0).build());
         helpFormatter = new HelpFormatter();
     }
