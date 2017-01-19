@@ -283,6 +283,9 @@ public class UtilityClass {
             for (MethodEntity methodEntity :
                     methodEntityList) {
                 //if the method has more then one line of code
+                if (methodEntity.getMethodDeclaration().getBody().getStmts() == null){
+                    continue;
+                }
                 if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
                         !methodEntity.getMethodDeclaration().getName().equals("main")) {
                     InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, newPath);
