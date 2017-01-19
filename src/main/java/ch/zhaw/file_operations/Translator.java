@@ -4,72 +4,59 @@ import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.expr.NameExpr;
 import org.codehaus.plexus.util.FileUtils;
-import java.io.*;
+
+import java.io.File;
+import java.io.IOException;
 import java.nio.file.Paths;
 import java.util.List;
 
-public class NewProjectCreator {
-    private String newPath;
-    private String oldPath;
-    private String confPath;
-    private boolean uploadingFlag;
+public class Translator {
+    private String inPath;
+    private String outPath;
 
-    public NewProjectCreator(String resultDir, boolean uploadingFlag, String confPath) {
-        oldPath = new File(".").getAbsolutePath();
-        newPath = resultDir;
-        this.confPath = confPath;
-        this.uploadingFlag = uploadingFlag;
-
+    public Translator(String inPath, String outPath) {
+        this.inPath = inPath;
+        this.outPath = outPath;
     }
 
-    public NewProjectCreator(String sourceDir, String resultDir, boolean uploadingFlag, String confPath) {
-        oldPath = sourceDir;
-        newPath = resultDir;
-        this.confPath = confPath;
-        this.uploadingFlag = uploadingFlag;
+    public String getInPath() {
+        return inPath;
     }
 
-    public NewProjectCreator(boolean uploadingFlag, String confPath) {
-        this.confPath = confPath;
-        newPath = ConfigReader.getConfig(confPath).getNewPath();
-        oldPath = ConfigReader.getConfig(confPath).getPath();
-        this.uploadingFlag = uploadingFlag;
+    public String getOutPath() {
+        return outPath;
     }
+    public void translate(){
+        // TODO: 1/16/17 handle missing in project exception
+        // TODO: 1/18/17 if the outFolder is already exist ask about rewriting
+        try {
+            copyProject();
+        } catch (IOException e) {
+            System.err.print("In project folder is not found");
+        }
+        JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(inPath));
+        SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld, inPath, outPath);
+        classTreeCreator.translate();
+    }
+    private void copyProject() throws IOException {
+        FileUtils.deleteDirectory(outPath);
 
-    void copyProject() throws IOException {
         Measurement m = new Measurement();
         m.measure("start");
-        FileUtils.deleteDirectory(newPath);
-
-        JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
+        JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(inPath));
         packageUnpackaged(javaProjectEntityOld.getUnpackagedClasses());
 
-        FileUtils.copyDirectoryStructure(new File(oldPath), new File(newPath));
+        FileUtils.copyDirectoryStructure(new File(inPath), new File(outPath));
         //addLibs();
         m.measure("analysis");
-        JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(newPath));
+        JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(outPath));
         m.measure("decomposition");
-        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, newPath);
+        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, outPath);
         invokeMethodsWriter.write();
         m.measure("translation in-memory");
-        create();
-        m.measure("//verification");
-        m.measure("finish");
+        //m.measure("//verification");
+        //m.measure("finish");
     }
-
-    private void addLibs() throws IOException {
-        File libDir = new File(newPath + "/libs");
-        libDir.mkdir();
-        FileUtils.copyDirectoryStructure(new File(confPath + "/libs/"), new File(newPath + "/libs/"));
-    }
-
-    private void create() {
-        JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(oldPath));
-        SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld, oldPath, newPath, confPath);
-        classTreeCreator.build(uploadingFlag);
-
-    }
-
     private void packageUnpackaged(List<ClassEntity> classes) throws IOException {
         for (ClassEntity classEntity :
                 classes) {

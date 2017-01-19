@@ -8,8 +8,8 @@ import japa.parser.ast.expr.ObjectCreationExpr;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,19 +17,16 @@ import java.util.List;
 import static ch.zhaw.file_operations.UtilityClass.getInputClass;
 import static ch.zhaw.file_operations.UtilityClass.getOutputClass;
 import static ch.zhaw.file_operations.UtilityClass.writeCuToFile;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class SupportClassTreeCreator {
     private JavaProjectEntity projectEntity;
     private String oldPath;
     private String newPath;
-    private String confPath;
 
-    public SupportClassTreeCreator(JavaProjectEntity projectEntity, String oldPath, String newPath, String confPath) {
+    public SupportClassTreeCreator(JavaProjectEntity projectEntity, String oldPath, String newPath) {
         this.projectEntity = projectEntity;
         this.oldPath = oldPath;
         this.newPath = newPath;
-        this.confPath = confPath;
     }
 
     private List<String> create() {
@@ -107,11 +104,11 @@ public class SupportClassTreeCreator {
         }
         return false;
     }
-
-    public void build(boolean uploadFlag) {
+    public void translate(){
         Measurement m = new Measurement();
         List<String> lambdaPathList = create();
         m.measure("translation to-files");
+        createDescriptor(lambdaPathList);
         String suppClassTreePath;
         for (String path :
                 lambdaPathList) {
@@ -122,27 +119,23 @@ public class SupportClassTreeCreator {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            JarBuilder jarBuilder = new JarBuilder(path);
-            m.measure("compilation:" + path);
-            if (uploadFlag) {
-                jarBuilder.createJar();
-                JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path, newPath),
-                        path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
-                        Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024, confPath);
-                jarUploader.uploadFunction();
 
-                // TODO: 12/2/16 Fix the problem with missing information when function is uploading
-                m.measure("upload:" + path);
-            }
-
+            //m.measure("compilation:" + path);
+            //m.measure("upload:" + path);
         }
+    }
+    private void createDescriptor(List<String> paths){
         try {
-            FileUtils.copyFileToDirectory(confPath + "/jyaml.yml", newPath);
+            FileWriter fileWriter = new FileWriter(newPath + "/PodilizerDescriptor.txt");
+            for (String str :
+                    paths) {
+                fileWriter.write(str + "\n");
+            }
+            fileWriter.close();
         } catch (IOException e) {
             e.printStackTrace();
         }
     }
-
     /**
      * excludes compilation units which have inner classes from List<ClassEntity>
      */
@@ -174,7 +167,6 @@ public class SupportClassTreeCreator {
     public String createProjTree(String path) throws IOException {
         File file = new File(path);
         file.mkdir();
-        Files.copy(Paths.get(confPath + "/pom.xml"), Paths.get(path + "/pom.xml"), REPLACE_EXISTING);
         file = new File(path + "/src/main/java");
         file.mkdirs();
         return path + "/src/main/java";
