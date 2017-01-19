@@ -51,7 +51,7 @@ public class NewProjectCreator {
         m.measure("decomposition");
         InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, newPath);
         invokeMethodsWriter.write();
-        m.measure("translation?");
+        m.measure("translation in-memory");
         create();
         m.measure("//verification");
         m.measure("finish");

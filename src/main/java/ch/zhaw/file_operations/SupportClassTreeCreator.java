@@ -111,7 +111,7 @@ public class SupportClassTreeCreator {
     public void build(boolean uploadFlag) {
         Measurement m = new Measurement();
         List<String> lambdaPathList = create();
-        m.measure("translation");
+        m.measure("translation to-files");
         String suppClassTreePath;
         for (String path :
                 lambdaPathList) {
