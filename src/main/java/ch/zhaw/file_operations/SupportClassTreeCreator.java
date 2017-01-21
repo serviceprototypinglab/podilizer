@@ -47,7 +47,7 @@ public class SupportClassTreeCreator {
 
                     //if it's not 'get' or 'set' method
                     if (!isAccessMethod(methodDeclaration) &
-                            ((methodDeclaration.getBody() != null) || (methodDeclaration.getBody().getStmts() != null))) {
+                            !((methodDeclaration.getBody() == null) || (methodDeclaration.getBody().getStmts() == null))) {
                         String packageName = "";
                         if (classEntity.getCu().getPackage() != null) {
                             packageName = classEntity.getCu().getPackage().getName().toString();
