@@ -146,7 +146,7 @@ public class Executor {
         long minutes = TimeUnit.MILLISECONDS.toMinutes(millis);
         long seconds = TimeUnit.MILLISECONDS.toSeconds(millis) - TimeUnit.MINUTES.toSeconds(minutes);
         long milliseconds = millis - TimeUnit.MINUTES.toMillis(minutes) - TimeUnit.SECONDS.toMillis(seconds);
-        return String.format("%02d min,%02d sec,%03d millisec", minutes,
+        return String.format("%02d min, %02d.%03d sec", minutes,
                 seconds, milliseconds);
     }
 }

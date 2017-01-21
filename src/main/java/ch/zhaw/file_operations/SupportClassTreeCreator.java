@@ -46,7 +46,7 @@ public class SupportClassTreeCreator {
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
 
                     //if it's not 'get' or 'set' method
-                    if (!isAccessMethod(methodDeclaration)) {
+                    if (!isAccessMethod(methodDeclaration) & (methodDeclaration.getBody() != null)) {
                         String packageName = "";
                         if (classEntity.getCu().getPackage() != null) {
                             packageName = classEntity.getCu().getPackage().getName().toString();
@@ -161,10 +161,11 @@ public class SupportClassTreeCreator {
      * @throws IOException
      */
     public String createProjTree(String path) throws IOException {
+        String projectSourceFolder = "/src/main/java";
         File file = new File(path);
         file.mkdir();
-        file = new File(path + "/src/main/java");
+        file = new File(path + projectSourceFolder);
         file.mkdirs();
-        return path + "/src/main/java";
+        return path + projectSourceFolder;
     }
 }

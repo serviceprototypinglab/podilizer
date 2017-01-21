@@ -26,7 +26,7 @@ public class JavaProjectEntity {
         Finder finder = new Finder(pattern);
         try {
             Files.walkFileTree(location, finder);
-            classEntities = finder.getFiles();
+            classEntities = getTranslatable(finder.getFiles());
             unpackagedClasses = finder.getUnpackagedClasses();
         } catch (IOException e) {
             e.printStackTrace();
@@ -37,6 +37,18 @@ public class JavaProjectEntity {
     /**
      * Looks for all files in the defined path with certain pattern
      */
+    private List<ClassEntity> getTranslatable(List<ClassEntity> classEntities){
+        List<ClassEntity> result = new ArrayList<>();
+        for (ClassEntity classEntity :
+                classEntities) {
+            CompilationUnit cu = classEntity.getCu();
+            if (cu.getTypes().size() == 1){
+                result.add(classEntity);
+            }
+
+        }
+        return result;
+    }
     public class Finder extends SimpleFileVisitor<Path> {
         private PathMatcher matcher;
         private List<ClassEntity> files = new ArrayList<>();
