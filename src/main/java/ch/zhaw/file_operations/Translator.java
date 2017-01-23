@@ -58,7 +58,7 @@ public class Translator {
             UtilityClass.writeCuToFile(classEntity.getPath().toString(), cu);
             String classPath = classEntity.getPath().toString();
             String packagePath = classPath.substring(0, classPath.length() -
-                    classEntity.getCu().getTypes().get(0).getName().length() - 5) + Constants.EXTRA_PACKAGE;
+                    classEntity.getCu().getTypes().get(0).getName().length() - 5) + "/" + Constants.EXTRA_PACKAGE;
             File newPackage = new File(packagePath);
             if (newPackage.exists() & newPackage.isDirectory()) {
                 packager(classPath, packagePath);
