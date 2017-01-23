@@ -68,6 +68,7 @@ public class MethodEntity {
         @Override
         public void visit(MethodCallExpr n, Object arg) {
             methodCallExprs.add(n);
+
             super.visit(n, arg);
         }
 

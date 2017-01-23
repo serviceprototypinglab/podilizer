@@ -111,14 +111,27 @@ public class SupportClassTreeCreator {
         String suppClassTreePath;
         for (String path :
                 lambdaPathList) {
-            try {
-                suppClassTreePath = path + "/src/main/java/";
-                FileUtils.copyDirectoryStructure(new File(newPath + "/src/"),
-                        new File(suppClassTreePath));
-            } catch (IOException e) {
-                e.printStackTrace();
+            suppClassTreePath = path + "/src/main/java/";
+            writeSupportClasses(suppClassTreePath);
+        }
+    }
+    private void writeSupportClasses(String path){
+        JavaProjectEntity javaProjectEntity = new JavaProjectEntity(Paths.get(newPath));
+        for (ClassEntity classEntity :
+                javaProjectEntity.getClassEntities()) {
+            String cuPath = classEntity.getPath().toString();
+            cuPath = cuPath.substring(newPath.length(), cuPath.length());
+            if (!cuPath.startsWith("/LambdaProjects/")){
+                CompilationUnit cu = classEntity.getCu();
+                String packagePath = cu.getPackage().getName().toString();
+                packagePath = packagePath.replace('.', '/');
+                String absolutePath = path + packagePath + "/";
+                File file = new File(absolutePath);
+                if (!file.exists()){
+                    file.mkdirs();
+                }
+                writeCuToFile(absolutePath + classEntity.getPath().toFile().getName(), cu);
             }
-
         }
     }
     private void createDescriptor(List<String> paths){
