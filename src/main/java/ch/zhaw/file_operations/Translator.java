@@ -7,6 +7,7 @@ import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
 import java.io.IOException;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 
@@ -51,14 +52,16 @@ public class Translator {
         invokeMethodsWriter.write();
     }
     private void packageUnpackaged(List<ClassEntity> classes) throws IOException {
+        System.out.println("size" + classes.size());
         for (ClassEntity classEntity :
                 classes) {
             CompilationUnit cu = classEntity.getCu();
             cu.setPackage(new PackageDeclaration(new NameExpr(Constants.EXTRA_PACKAGE)));
             UtilityClass.writeCuToFile(classEntity.getPath().toString(), cu);
             String classPath = classEntity.getPath().toString();
+            Path tmp = Paths.get(classPath);
             String packagePath = classPath.substring(0, classPath.length() -
-                    classEntity.getCu().getTypes().get(0).getName().length() - 5) + "/" + Constants.EXTRA_PACKAGE;
+                    tmp.getFileName().toString().length()) + "/" + Constants.EXTRA_PACKAGE;
             File newPackage = new File(packagePath);
             if (newPackage.exists() & newPackage.isDirectory()) {
                 packager(classPath, packagePath);
