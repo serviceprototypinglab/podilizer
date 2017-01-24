@@ -79,15 +79,15 @@ public class UtilityClass {
         }
         return inputCu;
     }
-
+    //if parameter has the same name as one of the field from field list, changes the name of parameter adding '1' to the end of the name(recursively)
     public static VariableDeclarator getFieldNameFromParam(VariableDeclaratorId param, ArrayList<String> fieldsNames) {
         String result = param.getName();
         if (fieldsNames.contains(result)) {
             result = result + "1";
-            result = getFieldNameFromParam(new VariableDeclaratorId(result),
-                    fieldsNames).getId().getName();
+            param.setName(result);
+            getFieldNameFromParam(param, fieldsNames);
         }
-        return new VariableDeclarator(new VariableDeclaratorId(result));
+        return new VariableDeclarator(param);
     }
 
     private static CompilationUnit createOutPutType(MethodEntity methodEntity) {
@@ -194,7 +194,6 @@ public class UtilityClass {
             emptyConstructor.setBlock(emptyConstrBlock);
             ASTHelper.addMember(compilationUnit.getTypes().get(0), emptyConstructor);
         }
-        ArrayList<String> fieldsNames = new ArrayList<>();
         for (FieldDeclaration field :
                 fieldDeclarationList) {
             for (VariableDeclarator var :
@@ -205,7 +204,6 @@ public class UtilityClass {
                 AssignExpr assignExprConstr =
                         new AssignExpr(fieldAccessExpr, new NameExpr(var.getId().getName()), AssignExpr.Operator.assign);
                 ASTHelper.addStmt(constrBlock, assignExprConstr);
-
                 MethodDeclaration setter =
                         new MethodDeclaration(ModifierSet.PUBLIC, ASTHelper.VOID_TYPE, "set" +
                                 firstLetterToUpperCase(var.getId().getName()));
@@ -214,12 +212,20 @@ public class UtilityClass {
                 FieldAccessExpr fieldExpr = new FieldAccessExpr(new ThisExpr(), var.getId().getName());
                 AssignExpr assignExpr = new AssignExpr(fieldExpr, new NameExpr(var.getId().getName()), AssignExpr.Operator.assign);
                 ASTHelper.addStmt(setBlock, assignExpr);
-                Parameter param = ASTHelper.createParameter(field.getType(), var.getId().getName());
+                Parameter param = new Parameter(field.getType(), var.getId());
                 ASTHelper.addParameter(setter, param);
                 ASTHelper.addMember(compilationUnit.getTypes().get(0), setter);
 
+                //if arrays type defined near the variable declaration add arrays declaration to return type
+                Type returnType = field.getType();
+                if (var.getId().toString().endsWith("[]")){
+                    String varString = var.getId().toString();
+                    String arraysScopes = varString.substring(var.getId().getName().length(), varString.length());
+                    returnType = new ClassOrInterfaceType(returnType.toString() + arraysScopes);
+                }
+
                 MethodDeclaration getter =
-                        new MethodDeclaration(ModifierSet.PUBLIC, field.getType(), "get" +
+                        new MethodDeclaration(ModifierSet.PUBLIC, returnType, "get" +
                                 firstLetterToUpperCase(var.getId().getName()));
                 BlockStmt getBlock = new BlockStmt();
                 NameExpr returnExpr = new NameExpr("return " + var.getId().getName());

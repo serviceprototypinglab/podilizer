@@ -52,7 +52,6 @@ public class Translator {
         invokeMethodsWriter.write();
     }
     private void packageUnpackaged(List<ClassEntity> classes) throws IOException {
-        System.out.println("size" + classes.size());
         for (ClassEntity classEntity :
                 classes) {
             CompilationUnit cu = classEntity.getCu();
@@ -77,16 +76,5 @@ public class Translator {
     private void packager(String file, String packagePath) throws IOException {
         File srcClass = new File(file);
         FileUtils.copyFileToDirectory(srcClass, new File(packagePath));
-        if (srcClass.exists()){
-            System.out.println(srcClass.getAbsolutePath() + " exists");
-        }
-        if (srcClass.delete()){
-            System.out.println("deleted " + srcClass.getAbsolutePath());
-        }
-        if (srcClass.exists()){
-            System.out.println(srcClass.getAbsolutePath() + " exists\n" +
-                    "-----------------------");
-        }
-        //FileUtils.forceDelete(file);
     }
 }
