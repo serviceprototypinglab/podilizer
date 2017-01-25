@@ -1,8 +1,11 @@
 package ch.zhaw.file_operations;
 
 import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.ModifierSet;
+import japa.parser.ast.body.TypeDeclaration;
 import japa.parser.ast.expr.NameExpr;
+import japa.parser.ast.type.ClassOrInterfaceType;
 
 import java.io.IOException;
 import java.nio.file.*;
@@ -18,6 +21,7 @@ public class JavaProjectEntity {
     private String pattern = "*.java";
     private Path location;
     private List<ClassEntity> classEntities;
+    private List<ClassEntity> allClassEntities;
     private List<NameExpr> methodEntities;
     private List<ClassEntity> unpackagedClasses;
 
@@ -26,6 +30,7 @@ public class JavaProjectEntity {
         Finder finder = new Finder(pattern);
         try {
             Files.walkFileTree(location, finder);
+            allClassEntities = finder.getFiles();
             classEntities = getTranslatable(finder.getFiles());
             unpackagedClasses = finder.getUnpackagedClasses();
         } catch (IOException e) {
@@ -43,7 +48,10 @@ public class JavaProjectEntity {
                 classEntities) {
             CompilationUnit cu = classEntity.getCu();
             if (cu.getTypes().size() == 1){
-                result.add(classEntity);
+                ClassOrInterfaceDeclaration type = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
+                if (!type.isInterface()){
+                    result.add(classEntity);
+                }
             }
 
         }
@@ -95,6 +103,10 @@ public class JavaProjectEntity {
 
     public List<ClassEntity> getUnpackagedClasses() {
         return unpackagedClasses;
+    }
+
+    public List<ClassEntity> getAllClassEntities() {
+        return allClassEntities;
     }
 
     /**

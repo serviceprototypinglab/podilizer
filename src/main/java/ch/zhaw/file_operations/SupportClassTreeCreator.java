@@ -118,7 +118,7 @@ public class SupportClassTreeCreator {
     private void writeSupportClasses(String path){
         JavaProjectEntity javaProjectEntity = new JavaProjectEntity(Paths.get(newPath));
         for (ClassEntity classEntity :
-                javaProjectEntity.getClassEntities()) {
+                javaProjectEntity.getAllClassEntities()) {
             String cuPath = classEntity.getPath().toString();
             cuPath = cuPath.substring(newPath.length(), cuPath.length());
             if (!cuPath.startsWith("/LambdaProjects/")){

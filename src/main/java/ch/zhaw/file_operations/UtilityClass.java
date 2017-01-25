@@ -275,6 +275,7 @@ public class UtilityClass {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
         int i = 0;
+        //if cu has some inner class i++
         for (Node node :
                 cu.getTypes().get(0).getChildrenNodes()) {
             if (node instanceof ClassOrInterfaceDeclaration) {
@@ -357,6 +358,13 @@ public class UtilityClass {
         List<AnnotationExpr> ignoreAnnotation = new ArrayList<>();
         ignoreAnnotation.add(ignoreAnnotationExpr);
 
+        //import JSon annotations
+        List<ImportDeclaration> imports = classEntity.getCu().getImports();
+        ImportDeclaration imd11 = new ImportDeclaration();
+        imd11.setName(new NameExpr("com.fasterxml.jackson.annotation.*"));
+        if (!imports.contains(imd11)){
+            imports.add(imd11);
+        }
         List<FieldDeclaration> fieldDeclarations = classEntity.getFields();
         for (FieldDeclaration field :
                 fieldDeclarations) {
@@ -373,17 +381,22 @@ public class UtilityClass {
             }
         }
         CompilationUnit cu = classEntity.getCu();
-        if (!hasDefaultConstructor(cu)){
-            ConstructorDeclaration constructorDeclaration =
-                    new ConstructorDeclaration(ModifierSet.PUBLIC, cu.getTypes().get(0).getName());
-            BlockStmt constructorBlock = new BlockStmt();
-            constructorDeclaration.setBlock(constructorBlock);
-            ASTHelper.addMember(cu.getTypes().get(0), constructorDeclaration);
+        addDefaultConstructor(cu);
+    }
+    private static void addDefaultConstructor(CompilationUnit cu){
+        for (TypeDeclaration typeDeclaration :
+                cu.getTypes()) {
+            if (!hasDefaultConstructor(typeDeclaration)){
+                ConstructorDeclaration constructorDeclaration =
+                        new ConstructorDeclaration(ModifierSet.PUBLIC, typeDeclaration.getName());
+                BlockStmt constructorBlock = new BlockStmt();
+                constructorDeclaration.setBlock(constructorBlock);
+                ASTHelper.addMember(typeDeclaration, constructorDeclaration);
 
+            }
         }
     }
-    private static boolean hasDefaultConstructor(CompilationUnit cu){
-        TypeDeclaration typeDeclaration = cu.getTypes().get(0);
+    private static boolean hasDefaultConstructor(TypeDeclaration typeDeclaration){
         List<BodyDeclaration> members = typeDeclaration.getMembers();
         if (members != null){
             for (BodyDeclaration body :
