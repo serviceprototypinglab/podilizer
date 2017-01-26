@@ -46,7 +46,7 @@ public class SupportClassTreeCreator {
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
 
                     //if it's not 'get' or 'set' method
-                    if (!isAccessMethod(methodDeclaration) &
+                    if (!UtilityClass.isAccessMethod(methodDeclaration) &
                             !((methodDeclaration.getBody() == null) || (methodDeclaration.getBody().getStmts() == null))) {
                         String packageName = "";
                         if (classEntity.getCu().getPackage() != null) {
@@ -96,15 +96,7 @@ public class SupportClassTreeCreator {
         }
         return lambdaPathList;
     }
-    private boolean isAccessMethod(MethodDeclaration methodDeclaration){
-        String str = methodDeclaration.getName().substring(0, 3);
-        if (str.equals("set") | str.equals("get")){
-            if (methodDeclaration.getBody().getStmts().size() < 2){
-                return true;
-            }
-        }
-        return false;
-    }
+
     public void translate(){
         List<String> lambdaPathList = create();
         createDescriptor(lambdaPathList);

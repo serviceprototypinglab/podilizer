@@ -22,6 +22,12 @@ import java.util.LinkedList;
 import java.util.List;
 
 public class UtilityClass {
+
+    /**
+     * Writes Compilation unit object into the file at certain path
+     * @param path String to save object
+     * @param cu Compilation unit object to save
+     */
     public static void writeCuToFile(String path, CompilationUnit cu) {
         try {
             PrintWriter writer = new PrintWriter(path, "UTF-8");
@@ -32,6 +38,11 @@ public class UtilityClass {
         }
     }
 
+    /**
+     * Replace the first letter of input string to the same uppercase letter
+     * @param string is input String to translation
+     * @return input string with first letter to upper case
+     */
     public static String firstLetterToUpperCase(String string) {
         String first = string.substring(0, 1);
         String second = string.substring(1, string.length());
@@ -39,6 +50,12 @@ public class UtilityClass {
         return first + second;
     }
 
+    /**
+     * Checks the accessibility of the field from certain method
+     * @param methodDeclaration is method from where checks the access to field
+     * @param fieldDeclaration is field to access from method
+     * @return true if the  @param fieldDeclaration is accessible from the @param methodDeclaration
+     */
     public static boolean isFieldAccessible(MethodDeclaration methodDeclaration, FieldDeclaration fieldDeclaration) {
         boolean result = true;
         if (ModifierSet.isStatic(methodDeclaration.getModifiers()) & !ModifierSet.isStatic(fieldDeclaration.getModifiers())) {
@@ -47,6 +64,11 @@ public class UtilityClass {
         return result;
     }
 
+    /**
+     * Creates input class for Lambda function based on the method
+     * @param methodEntity is a basic method for Lambda function and creating the input class
+     * @return Compilation unit object of the created class
+     */
     private static CompilationUnit createInPutType(MethodEntity methodEntity) {
         List<Parameter> parameters = methodEntity.getMethodDeclaration().getParameters();
         CompilationUnit inputCu = new CompilationUnit();
@@ -79,7 +101,13 @@ public class UtilityClass {
         }
         return inputCu;
     }
-    //if parameter has the same name as one of the field from field list, changes the name of parameter adding '1' to the end of the name(recursively)
+
+    /**
+     * If parameter has the same name as one of the field from field list, changes the name of parameter adding '1' to the end of the name(recursively)
+     * @param param is checked parameter
+     * @param fieldsNames is the list of String which contains the fields names
+     * @return updated variable declarator of the future field
+     */
     public static VariableDeclarator getFieldNameFromParam(VariableDeclaratorId param, ArrayList<String> fieldsNames) {
         String result = param.getName();
         if (fieldsNames.contains(result)) {
@@ -90,6 +118,11 @@ public class UtilityClass {
         return new VariableDeclarator(param);
     }
 
+    /**
+     * Creates output class for Lambda function based on the method
+     * @param methodEntity is a basic method for Lambda function and creating the input class
+     * @return Compilation unit object of the created class
+     */
     private static CompilationUnit createOutPutType(MethodEntity methodEntity) {
         CompilationUnit outputCu = new CompilationUnit();
         ClassOrInterfaceDeclaration declaration =
@@ -124,6 +157,11 @@ public class UtilityClass {
 
     }
 
+    /**
+     * Generates the list of imports taking the imports of method's class
+     * @param methodEntity is method to generate imports for (during Lambda creating)
+     * @return the ArrayList of imports
+     */
     public static List<ImportDeclaration> generateImportsList(MethodEntity methodEntity) {
         CompilationUnit cu = methodEntity.getClassEntity().getCu();
         List<ImportDeclaration> imports;
@@ -293,7 +331,7 @@ public class UtilityClass {
                     continue;
                 }
                 //if the method has more then one line of code
-                if (methodEntity.getMethodDeclaration().getBody().getStmts().size() > 1 &
+                if (!UtilityClass.isAccessMethod(methodEntity.getMethodDeclaration()) &
                         !methodEntity.getMethodDeclaration().getName().equals("main")) {
                     InvokeMethodCreator invokeMethodCreator = new InvokeMethodCreator(methodEntity, newPath);
                     invokeMethodCreator.createMethodInvoker();
@@ -350,6 +388,15 @@ public class UtilityClass {
             }
         }
     }
+    public static boolean isAccessMethod(MethodDeclaration methodDeclaration){
+        String str = methodDeclaration.getName().substring(0, 3);
+        if (str.equals("set") | str.equals("get")){
+            if (methodDeclaration.getBody().getStmts().size() < 2){
+                return true;
+            }
+        }
+        return false;
+    }
     public static void addJsonAnnotations(ClassEntity classEntity){
         MarkerAnnotationExpr propAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonProperty"));
         MarkerAnnotationExpr ignoreAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonIgnore"));
@@ -359,7 +406,10 @@ public class UtilityClass {
         ignoreAnnotation.add(ignoreAnnotationExpr);
 
         //import JSon annotations
-        List<ImportDeclaration> imports = classEntity.getCu().getImports();
+        List<ImportDeclaration> imports = new ArrayList<>();
+        if (classEntity.getCu().getImports() != null){
+            imports.addAll(classEntity.getCu().getImports());
+        }
         ImportDeclaration imd11 = new ImportDeclaration();
         imd11.setName(new NameExpr("com.fasterxml.jackson.annotation.*"));
         if (!imports.contains(imd11)){
