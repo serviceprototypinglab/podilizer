@@ -186,6 +186,12 @@ public class UtilityClass {
         return imports;
     }
 
+    /**
+     * Generates the package name for Lambda function's input and output classes
+     * @param methodEntity is a method to upload as Lambda function
+     * @param isForCloud is a flag which defines the locations of package(or lambda project or method invoker location)
+     * @return generated PackageDeclaration object
+     */
     private static PackageDeclaration generatePackage(MethodEntity methodEntity, boolean isForCloud) {
         CompilationUnit compilationUnit = methodEntity.getClassEntity().getCu();
         MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
@@ -208,6 +214,13 @@ public class UtilityClass {
         return new PackageDeclaration(packageNameExpr);
     }
 
+    /**
+     * Adds the access methods to the class.
+     * @param compilationUnit object represents the class where to add methods.
+     * @param methodEntity method for which input and output classes will be created
+     * @param isForCloud is a flag which defines the locations of class(or lambda project or method invoker location)
+     * @return CompilationUnit object with needed access methods
+     */
     private static CompilationUnit createGetSet(CompilationUnit compilationUnit, MethodEntity methodEntity, boolean isForCloud) {
         if (isForCloud) {
             compilationUnit.setImports(generateImportsList(methodEntity));
@@ -309,6 +322,12 @@ public class UtilityClass {
         return staticFields;
     }
 
+    /**
+     * Translates methods into invokers in the appropriate class
+     * @param classEntity is  a class to translate
+     * @param newPath config path
+     * @return translated Compilation unit object
+     */
     public static CompilationUnit translateClass(ClassEntity classEntity, String newPath) {
         CompilationUnit cu = classEntity.getCu();
         ClassOrInterfaceDeclaration declaration = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
@@ -371,6 +390,10 @@ public class UtilityClass {
         return cu;
     }
 
+    /**
+     * Changes all method's access modifiers to 'PUBLIC'
+     * @param classEntity is {@code {@link ClassEntity}} instance of the class
+     */
     public static void makeAllMethodsPublic(ClassEntity classEntity) {
         List<MethodEntity> methods = classEntity.getFunctions();
         for (MethodEntity method :
@@ -378,6 +401,11 @@ public class UtilityClass {
             makeMethodPublic(method.getMethodDeclaration());
         }
     }
+
+    /**
+     * Changes all constructor's access modifiers to 'PUBLIC'
+     * @param classEntity is {@code {@link ClassEntity}} instance of the class
+     */
     public static void makeConstructorsPublic(ClassEntity classEntity){
         CompilationUnit cu = classEntity.getCu();
         List<BodyDeclaration> bodyDeclarations = cu.getTypes().get(0).getMembers();
@@ -388,6 +416,12 @@ public class UtilityClass {
             }
         }
     }
+
+    /**
+     * Checks is the methods is access method(getter ar setter)
+     * @param methodDeclaration is {@code {@link MethodDeclaration}} instance of the method to change
+     * @return {@code true} if it's access method and {@code false} if it's not
+     */
     public static boolean isAccessMethod(MethodDeclaration methodDeclaration){
         String str = methodDeclaration.getName().substring(0, 3);
         if (str.equals("set") | str.equals("get")){
@@ -397,6 +431,11 @@ public class UtilityClass {
         }
         return false;
     }
+
+    /**
+     * Adds JSon annotations to fields and access methods in the class
+     * @param classEntity is class to be edited
+     */
     public static void addJsonAnnotations(ClassEntity classEntity){
         MarkerAnnotationExpr propAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonProperty"));
         MarkerAnnotationExpr ignoreAnnotationExpr = new MarkerAnnotationExpr(new NameExpr("JsonIgnore"));
@@ -433,6 +472,11 @@ public class UtilityClass {
         CompilationUnit cu = classEntity.getCu();
         addDefaultConstructor(cu);
     }
+
+    /**
+     * Adds default empty constructor to class if it does not exist
+     * @param cu is {@code {@link CompilationUnit}} instance of the class
+     */
     private static void addDefaultConstructor(CompilationUnit cu){
         for (TypeDeclaration typeDeclaration :
                 cu.getTypes()) {
@@ -446,6 +490,13 @@ public class UtilityClass {
             }
         }
     }
+
+    /**
+     *
+     * Checks if class has the default constructor declared
+     * @param typeDeclaration is type declaration to check
+     * @return {@code true} if class has default constructor
+     */
     private static boolean hasDefaultConstructor(TypeDeclaration typeDeclaration){
         List<BodyDeclaration> members = typeDeclaration.getMembers();
         if (members != null){
@@ -462,6 +513,13 @@ public class UtilityClass {
         return false;
     }
 
+    /**
+     * Generates the name of Lambda functions, based on the path in the file tree
+     * @param path is generated file path for Lambda project
+     * @param newPath is path of translated project
+     * @return {@code {@link String}} instance of the generated name
+     */
+
     public static String generateLambdaName(String path, String newPath) {
         String cut = "" + newPath + "/LambdaProjects/";
         path = path.substring(cut.length(), path.length());
@@ -469,6 +527,11 @@ public class UtilityClass {
         return path;
     }
 
+    /**
+     * Generates the name of Lambda functions, based on the method declaration
+     * @param methodEntity is {@code {@link MethodDeclaration}} instance
+     * @return {@code {@link String}} instance of the generated name
+     */
     public static String generateLambdaName(MethodEntity methodEntity) {
         String packageName = "";
         ClassEntity classEntity = methodEntity.getClassEntity();
@@ -487,8 +550,7 @@ public class UtilityClass {
 
     /**
      * Changes any method's access modifier to {@code public}
-     *
-     * @param methodDeclaration {@code MethodDeclaration} to be changed
+     * @param methodDeclaration {@code {@link MethodDeclaration}} to be changed
      */
     public static void makeMethodPublic(MethodDeclaration methodDeclaration) {
         int modifiers = methodDeclaration.getModifiers();
@@ -509,6 +571,11 @@ public class UtilityClass {
             }
         }
     }
+
+    /**
+     * Changes constructor's access modifier to {@code public}
+     * @param constructorDeclaration is {@code {@link ConstructorDeclaration}} instance to be changed
+     */
     public static void makeConstructorPublic(ConstructorDeclaration constructorDeclaration) {
         int modifiers = constructorDeclaration.getModifiers();
         if (!ModifierSet.isPublic(modifiers)) {
@@ -528,6 +595,11 @@ public class UtilityClass {
             }
         }
     }
+
+    /**
+     * Changes class's access modifier to {@code public}
+     * @param cu is {@code {@link CompilationUnit}} instance of class
+     */
     public static void makeClassPublic(CompilationUnit cu) {
         TypeDeclaration typeDeclaration = cu.getTypes().get(0);
         int modifiers = typeDeclaration.getModifiers();

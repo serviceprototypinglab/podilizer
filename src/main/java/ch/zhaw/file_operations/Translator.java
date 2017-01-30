@@ -76,5 +76,6 @@ public class Translator {
     private void packager(String file, String packagePath) throws IOException {
         File srcClass = new File(file);
         FileUtils.copyFileToDirectory(srcClass, new File(packagePath));
+        srcClass.delete();
     }
 }
