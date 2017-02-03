@@ -15,12 +15,18 @@ public class InvokeMethodsWriter {
 
     public void write() {
         List<ClassEntity> classEntityList = oldProject.getClassEntities();
+        List<ClassEntity> allClasses = oldProject.getAllClassEntities();
         for (ClassEntity classEntity :
-                classEntityList) {
+                allClasses) {
             UtilityClass.makeAllMethodsPublic(classEntity);
             UtilityClass.makeConstructorsPublic(classEntity);
             UtilityClass.makeClassPublic(classEntity.getCu());
             UtilityClass.addJsonAnnotations(classEntity);
+            UtilityClass.writeCuToFile(classEntity.getPath().toString(), classEntity.getCu());
+
+        }
+        for (ClassEntity classEntity :
+                classEntityList) {
             CompilationUnit cu = UtilityClass.translateClass(classEntity, newPath);
             UtilityClass.writeCuToFile(classEntity.getPath().toString(), cu);
         }

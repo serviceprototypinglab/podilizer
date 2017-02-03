@@ -4,6 +4,7 @@ import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.Node;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
+import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.ObjectCreationExpr;
 import org.codehaus.plexus.util.FileUtils;
 
@@ -65,7 +66,6 @@ public class SupportClassTreeCreator {
                         writeCuToFile(newPath + "/src/awsl/AWSConfEntity.java", UtilityClass.createConfigEntity());
                         writeCuToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
                         writeCuToFile(path + "/InputType.java", getInputClass(methodEntity, false));
-
                         String pathLambdaProject = "" + newPath +
                                 "/LambdaProjects/" + packageName + "/" + className + "/" + functionName;
                         File file1 = new File(pathLambdaProject);

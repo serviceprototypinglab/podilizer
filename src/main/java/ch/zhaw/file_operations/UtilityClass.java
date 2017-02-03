@@ -454,10 +454,16 @@ public class UtilityClass {
         if (!imports.contains(imd11)){
             imports.add(imd11);
         }
+        classEntity.getCu().setImports(imports);
         List<FieldDeclaration> fieldDeclarations = classEntity.getFields();
         for (FieldDeclaration field :
                 fieldDeclarations) {
-            field.setAnnotations(propAnnotations);
+            List<AnnotationExpr> annotations = new ArrayList<>();
+            if (field.getAnnotations() != null){
+                annotations.addAll(field.getAnnotations());
+            }
+            annotations.addAll(propAnnotations);
+            field.setAnnotations(annotations);
         }
 
         List<MethodEntity> methodEntities = classEntity.getFunctions();
@@ -466,7 +472,12 @@ public class UtilityClass {
             MethodDeclaration methodDeclaration = method.getMethodDeclaration();
             String methodName = methodDeclaration.getName();
             if (methodName.startsWith("set") || methodName.startsWith("get")){
-                methodDeclaration.setAnnotations(ignoreAnnotation);
+                List<AnnotationExpr> annotations = new ArrayList<>();
+                if (methodDeclaration.getAnnotations() != null) {
+                    annotations.addAll(methodDeclaration.getAnnotations());
+                }
+                annotations.addAll(ignoreAnnotation);
+                methodDeclaration.setAnnotations(annotations);
             }
         }
         CompilationUnit cu = classEntity.getCu();
