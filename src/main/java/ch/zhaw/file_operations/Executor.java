@@ -1,5 +1,6 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Parse;
 import javafx.util.Pair;
 import org.apache.commons.cli.*;
 
@@ -117,6 +118,8 @@ public class Executor {
         Translator translator = new Translator(inPath, outPAth);
         translator.translate();
         System.out.println("\n---Translation finished in " + calculateTime() + "---\n");
+        Parse.displayFilesStatistic();
+        Parse.displayMethodsStatistic();
     }
     private void buildWithArgs(CommandLine cmd){
         System.out.println("\n---Building started.---\n");

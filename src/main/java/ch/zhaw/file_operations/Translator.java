@@ -1,5 +1,6 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Parse;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.expr.NameExpr;
@@ -43,6 +44,11 @@ public class Translator {
         FileUtils.deleteDirectory(outPath);
 
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(inPath));
+
+        //input project parsing statistic fetching
+        Parse.setFilesNumber(javaProjectEntityOld.getAllClassEntities().size());
+        Parse.setMethodsNumber(javaProjectEntityOld.getMethodEntities().size());
+
         packageUnpackaged(javaProjectEntityOld.getUnpackagedClasses());
 
         FileUtils.copyDirectoryStructure(new File(inPath), new File(outPath));

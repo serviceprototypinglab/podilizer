@@ -3,9 +3,7 @@ package ch.zhaw.file_operations;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.ModifierSet;
-import japa.parser.ast.body.TypeDeclaration;
 import japa.parser.ast.expr.NameExpr;
-import japa.parser.ast.type.ClassOrInterfaceType;
 
 import java.io.IOException;
 import java.nio.file.*;
