@@ -21,9 +21,9 @@ public class Parse {
     }
 
     public static void displayFilesStatistic(){
-        System.out.println("[Code analysis statistic:]\n\n  " + filesNumber + " '.java' files was/were found in the input project directory.");
+        System.out.println("[Code analysis statistic:]\n\n  " + filesNumber + " '.java' files was/were found in the input project directory.\n");
     }
     public static void displayMethodsStatistic(){
-        System.out.println("[Code decomposition statistic:]\n\n  " + methodsNumber + " methods was/were found in the input java project.");
+        System.out.println("[Code decomposition statistic:]\n\n  " + methodsNumber + " methods was/were found in the input java project.\n");
     }
 }

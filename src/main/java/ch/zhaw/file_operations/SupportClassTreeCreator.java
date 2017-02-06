@@ -1,5 +1,6 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Translate;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.Node;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
@@ -99,6 +100,10 @@ public class SupportClassTreeCreator {
 
     public void translate(){
         List<String> lambdaPathList = create();
+
+        //translation statistic fetching
+        Translate.setLambdaFunctionsNumber(lambdaPathList.size());
+
         createDescriptor(lambdaPathList);
         String suppClassTreePath;
         for (String path :
