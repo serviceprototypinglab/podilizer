@@ -37,7 +37,7 @@ public class JarBuilder {
      *
      * @throws URISyntaxException
      */
-    private void mvnBuild() throws URISyntaxException {
+    public String mvnBuild() {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File(path));
         request.setGoals(Arrays.asList("clean", "install"));
@@ -56,23 +56,17 @@ public class JarBuilder {
             InvocationResult result = invoker.execute(request);
             printBuildResult(path, result.getExitCode());
             printStream.close();
+            if (result.getExitCode() == 0){
+                return path;
+            }
         } catch (MavenInvocationException e) {
             e.printStackTrace();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
-    /**
-     * Creates built jar of 'Lambda Function'
-     */
-    public void createJar() {
-        try {
-            mvnBuild();
-        } catch (URISyntaxException e) {
-            e.printStackTrace();
-        }
-    }
     private void printBuildResult(String path, int exitCode){
         String result = "Build result of project " + path + " : ";
         if (exitCode == 0) {

@@ -104,7 +104,7 @@ public class SupportClassTreeCreator {
         //translation statistic fetching
         Translate.setLambdaFunctionsNumber(lambdaPathList.size());
 
-        createDescriptor(lambdaPathList);
+        DescriptorCreator.createDescriptor(lambdaPathList, newPath, Constants.TRANSLATED_DESCRIPTOR_NAME);
         String suppClassTreePath;
         for (String path :
                 lambdaPathList) {
@@ -129,18 +129,6 @@ public class SupportClassTreeCreator {
                 }
                 writeCuToFile(absolutePath + classEntity.getPath().toFile().getName(), cu);
             }
-        }
-    }
-    private void createDescriptor(List<String> paths){
-        try {
-            FileWriter fileWriter = new FileWriter(newPath + "/PodilizerDescriptor.txt");
-            for (String str :
-                    paths) {
-                fileWriter.write(str + "\n");
-            }
-            fileWriter.close();
-        } catch (IOException e) {
-            e.printStackTrace();
         }
     }
     /**

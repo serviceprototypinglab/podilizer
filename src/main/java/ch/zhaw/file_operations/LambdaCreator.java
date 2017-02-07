@@ -5,11 +5,12 @@ import org.codehaus.plexus.util.FileUtils;
 import java.io.IOException;
 import java.util.List;
 
-public class LambdaCreator extends ProjectCreator{
+public class LambdaCreator{
+    private String outPath;
     private String confPath;
 
     public LambdaCreator(String outPath, String confPath) {
-        super(outPath);
+        this.outPath = outPath;
         this.confPath = confPath;
     }
 
@@ -21,7 +22,7 @@ public class LambdaCreator extends ProjectCreator{
         return confPath;
     }
     public void create(){
-        List<String> lambdaPathList = readDescriptor();
+        List<String> lambdaPathList = DescriptorCreator.readDescriptor(outPath, Constants.BUILT_DESCRIPTOR_NAME);
         for (String path :
                 lambdaPathList) {
             // TODO: 1/17/17 handle the missing of built projects
