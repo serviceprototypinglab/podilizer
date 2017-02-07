@@ -12,6 +12,6 @@ public class Translate {
     }
 
     public static void displayTranslationStatistic(){
-        System.out.println("[Functions translation statistic:]\n\n  " + lambdaFunctionsNumber + " Lambda Function projects were created.\n");
+        System.out.println("[Functions translation statistic:]\n\n  - " + lambdaFunctionsNumber + " Lambda Function projects were created.\n");
     }
 }

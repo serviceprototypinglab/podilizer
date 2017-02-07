@@ -1,5 +1,7 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Compile;
+
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -35,5 +37,6 @@ public class Builder extends ProjectCreator{
             }
             jarBuilder.createJar();
         }
+        Compile.displayCompileStatistic(lambdaPathList.size());
     }
 }

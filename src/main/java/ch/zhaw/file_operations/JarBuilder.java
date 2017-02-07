@@ -1,5 +1,6 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Compile;
 import org.apache.maven.shared.invoker.*;
 import org.codehaus.plexus.util.IOUtil;
 import sun.rmi.log.LogHandler;
@@ -76,6 +77,9 @@ public class JarBuilder {
         String result = "Build result of project " + path + " : ";
         if (exitCode == 0) {
             result += "[SUCCESS]";
+
+            //fetch the compile statistic
+            Compile.countProject();
         } else {
             result += "[FAILURE]";
         }
