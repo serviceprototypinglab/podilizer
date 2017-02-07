@@ -41,6 +41,6 @@ public class Builder {
             jarPathList.add(jarBuilder.mvnBuild());
         }
         DescriptorCreator.createDescriptor(jarPathList, outPath, Constants.BUILT_DESCRIPTOR_NAME);
-        Compile.displayCompileStatistic(lambdaPathList.size());
+        Compile.setTranslatedProjectsNumber(lambdaPathList.size());
     }
 }

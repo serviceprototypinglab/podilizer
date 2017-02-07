@@ -1,7 +1,9 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Compile;
 import ch.zhaw.statistic.Parse;
 import ch.zhaw.statistic.Translate;
+import ch.zhaw.statistic.Upload;
 import javafx.util.Pair;
 import org.apache.commons.cli.*;
 
@@ -132,6 +134,7 @@ public class Executor {
         Builder builder = new Builder(outPath, pomPath);
         builder.build();
         System.out.println("\n---Building finished in " + calculateTime() + "---\n");
+        Compile.displayCompileStatistic();
     }
     private void uploadWithArgs(CommandLine cmd){
         System.out.println("\n---Lambda functions creating started---\n");
@@ -142,6 +145,7 @@ public class Executor {
         LambdaCreator lambdaCreator = new LambdaCreator(outPath, confPath);
         lambdaCreator.create();
         System.out.println("\n---Lambda functions creating finished in " + calculateTime() + "---\n");
+        Upload.displayUploadStatistic();
     }
     private void startCount(){
         time = System.currentTimeMillis();

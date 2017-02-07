@@ -1,5 +1,6 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Upload;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.IOException;
@@ -23,6 +24,9 @@ public class LambdaCreator{
     }
     public void create(){
         List<String> lambdaPathList = DescriptorCreator.readDescriptor(outPath, Constants.BUILT_DESCRIPTOR_NAME);
+        
+        //upload statistic fetching
+        Upload.setBuiltProjectsNumber(lambdaPathList.size());
         for (String path :
                 lambdaPathList) {
             // TODO: 1/17/17 handle the missing of built projects
