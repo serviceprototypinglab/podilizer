@@ -1,6 +1,8 @@
 package ch.zhaw.file_operations;
 
 import org.apache.maven.shared.invoker.*;
+import org.codehaus.plexus.util.IOUtil;
+import sun.rmi.log.LogHandler;
 
 import java.io.*;
 import java.net.URISyntaxException;
@@ -38,16 +40,24 @@ public class JarBuilder {
         InvocationRequest request = new DefaultInvocationRequest();
         request.setPomFile(new File(path));
         request.setGoals(Arrays.asList("clean", "install"));
-
+        File buildLog = new File(path + "/buildLog.txt");
 
         Invoker invoker = new DefaultInvoker();
         try {
             if (invoker.getMavenHome() == null){
                 invoker.setMavenHome(new File("/usr/share/maven/"));
             }
+            //log the build output to file
+            PrintStream printStream = new PrintStream(buildLog);
+            InvocationOutputHandler outputHandler = new PrintStreamHandler(printStream, true);
+            invoker.setOutputHandler(outputHandler);
 
-            invoker.execute(request);
+            InvocationResult result = invoker.execute(request);
+            printBuildResult(path, result.getExitCode());
+            printStream.close();
         } catch (MavenInvocationException e) {
+            e.printStackTrace();
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
     }
@@ -62,6 +72,14 @@ public class JarBuilder {
             e.printStackTrace();
         }
     }
-
+    private void printBuildResult(String path, int exitCode){
+        String result = "Build result of project " + path + " : ";
+        if (exitCode == 0) {
+            result += "[SUCCESS]";
+        } else {
+            result += "[FAILURE]";
+        }
+        System.out.println(result);
+    }
 
 }
