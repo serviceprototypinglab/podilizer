@@ -45,7 +45,7 @@ public class Translator {
 
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(inPath));
 
-        //input project parsing statistic fetching
+        //fetch the parsing statistic
         Parse.setFilesNumber(javaProjectEntityOld.getAllClassEntities().size());
         Parse.setMethodsNumber(javaProjectEntityOld.getMethodEntities().size());
 

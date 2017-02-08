@@ -491,7 +491,8 @@ public class UtilityClass {
     private static void addDefaultConstructor(CompilationUnit cu){
         for (TypeDeclaration typeDeclaration :
                 cu.getTypes()) {
-            if (!hasDefaultConstructor(typeDeclaration)){
+            if (!hasDefaultConstructor(typeDeclaration) && !((ClassOrInterfaceDeclaration)typeDeclaration).isInterface()
+                    && ModifierSet.isAbstract(typeDeclaration.getModifiers())) {
                 ConstructorDeclaration constructorDeclaration =
                         new ConstructorDeclaration(ModifierSet.PUBLIC, typeDeclaration.getName());
                 BlockStmt constructorBlock = new BlockStmt();

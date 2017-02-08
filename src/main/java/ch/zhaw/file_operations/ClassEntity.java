@@ -58,7 +58,9 @@ public class ClassEntity implements Serializable {
         try {
             cu = JavaParser.parse(in);
         } catch (ParseException e) {
-            e.printStackTrace();
+            System.err.print("Project can't be parsed. It contains incorrect java code!\n");
+            System.exit(0);
+            //e.printStackTrace();
         } finally {
             try {
                 in.close();
