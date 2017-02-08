@@ -13,7 +13,12 @@ public class Compile {
     }
 
     public static void displayCompileStatistic(){
-        float percentage = (builtProjects/translatedProjectsNumber)*100;
+        float percentage;
+        if (translatedProjectsNumber != 0){
+            percentage = (builtProjects/translatedProjectsNumber)*100;
+        } else {
+            percentage = 0;
+        }
         System.out.println("\n[Compilation statistic:]\n");
         System.out.println("  - " + translatedProjectsNumber + " projects were prepared for compiling.\n");
         System.out.println("  - " + builtProjects + " projects were successfully compiled.\n");

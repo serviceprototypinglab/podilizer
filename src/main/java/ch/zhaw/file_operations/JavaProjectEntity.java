@@ -34,7 +34,7 @@ public class JavaProjectEntity {
         } catch (IOException e) {
             e.printStackTrace();
         }
-        methodEntities = findAllMethods(classEntities);
+        methodEntities = findAllMethods(allClassEntities);
     }
 
     /**
