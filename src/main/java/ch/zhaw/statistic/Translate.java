@@ -1,5 +1,7 @@
 package ch.zhaw.statistic;
 
+import ch.zhaw.time.TranslationTimer;
+
 public class Translate {
     private static int lambdaFunctionsNumber;
     private static float percentage;
@@ -18,5 +20,6 @@ public class Translate {
 
     public static void displayTranslationStatistic(){
         System.out.println("[Functions translation statistic:]\n\n  - " + lambdaFunctionsNumber + " Lambda Function projects were created.\n");
+        System.out.println("  Finished in: " + TranslationTimer.getFormattedTime() + "\n");
     }
 }

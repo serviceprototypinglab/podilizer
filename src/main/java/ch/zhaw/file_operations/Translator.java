@@ -1,6 +1,7 @@
 package ch.zhaw.file_operations;
 
 import ch.zhaw.statistic.Parse;
+import ch.zhaw.time.TranslationTimer;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.PackageDeclaration;
 import japa.parser.ast.expr.NameExpr;
@@ -36,9 +37,15 @@ public class Translator {
         } catch (IOException e) {
             System.err.print("In project folder is not found");
         }
+        TranslationTimer.start();
+        JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(outPath));
+        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, outPath);
+        invokeMethodsWriter.write();
+
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(inPath));
         SupportClassTreeCreator classTreeCreator = new SupportClassTreeCreator(javaProjectEntityOld, inPath, outPath);
         classTreeCreator.translate();
+        TranslationTimer.stop();
     }
     private void copyProject() throws IOException {
         FileUtils.deleteDirectory(outPath);
@@ -53,9 +60,6 @@ public class Translator {
 
         FileUtils.copyDirectoryStructure(new File(inPath), new File(outPath));
         //addLibs();
-        JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(outPath));
-        InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, outPath);
-        invokeMethodsWriter.write();
     }
     private void packageUnpackaged(List<ClassEntity> classes) throws IOException {
         for (ClassEntity classEntity :
