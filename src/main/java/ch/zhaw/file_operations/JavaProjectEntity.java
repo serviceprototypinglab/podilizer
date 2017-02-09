@@ -27,12 +27,11 @@ public class JavaProjectEntity {
 
     public JavaProjectEntity(Path location) {
         this.location = location;
-        AnalysisTimer.start();
         Finder finder = new Finder(pattern);
-        AnalysisTimer.stop();
-        DecompositionTimer.start();
         try {
+
             Files.walkFileTree(location, finder);
+
             allClassEntities = finder.getFiles();
             classEntities = getTranslatable(finder.getFiles());
             unpackagedClasses = finder.getUnpackagedClasses();
@@ -40,7 +39,6 @@ public class JavaProjectEntity {
             e.printStackTrace();
         }
         methodEntities = findAllMethods(allClassEntities);
-        DecompositionTimer.stop();
     }
 
     /**

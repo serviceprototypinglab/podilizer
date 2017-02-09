@@ -1,6 +1,8 @@
 package ch.zhaw.file_operations;
 
 import ch.zhaw.statistic.Parse;
+import ch.zhaw.time.AnalysisTimer;
+import ch.zhaw.time.DecompositionTimer;
 import ch.zhaw.time.TranslationTimer;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.PackageDeclaration;
@@ -37,8 +39,11 @@ public class Translator {
         } catch (IOException e) {
             System.err.print("In project folder is not found");
         }
-        TranslationTimer.start();
+        DecompositionTimer.start();
         JavaProjectEntity javaProjectEntityNew = new JavaProjectEntity(Paths.get(outPath));
+        DecompositionTimer.stop();
+
+        TranslationTimer.start();
         InvokeMethodsWriter invokeMethodsWriter = new InvokeMethodsWriter(javaProjectEntityNew, outPath);
         invokeMethodsWriter.write();
 
@@ -50,8 +55,9 @@ public class Translator {
     private void copyProject() throws IOException {
         FileUtils.deleteDirectory(outPath);
 
+        AnalysisTimer.start();
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(inPath));
-
+        AnalysisTimer.stop();
         //fetch the parsing statistic
         Parse.setFilesNumber(javaProjectEntityOld.getAllClassEntities().size());
         Parse.setMethodsNumber(javaProjectEntityOld.getMethodEntities().size());
