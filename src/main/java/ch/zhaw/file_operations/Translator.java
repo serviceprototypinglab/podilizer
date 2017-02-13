@@ -32,8 +32,6 @@ public class Translator {
         return outPath;
     }
     public void translate(){
-        // TODO: 1/16/17 handle missing in project exception
-        // TODO: 1/18/17 if the outFolder is already exist ask about rewriting
         try {
             copyProject();
         } catch (IOException e) {
@@ -53,7 +51,20 @@ public class Translator {
         TranslationTimer.stop();
     }
     private void copyProject() throws IOException {
-        FileUtils.deleteDirectory(outPath);
+        File outDirectory = new File(outPath);
+        if (outDirectory.exists()){
+            System.out.println("Out directory is already exists. Do you want to delete it? [y/n]: ");
+            int string = System.in.read();
+            switch (string) {
+                case 'y':
+                    FileUtils.deleteDirectory(outPath);
+                    break;
+                case 'n':
+                    System.exit(0);
+                default:
+                    System.exit(0);
+            }
+        }
 
         AnalysisTimer.start();
         JavaProjectEntity javaProjectEntityOld = new JavaProjectEntity(Paths.get(inPath));

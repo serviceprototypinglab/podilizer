@@ -29,7 +29,6 @@ public class LambdaCreator{
         Upload.setBuiltProjectsNumber(lambdaPathList.size());
         for (String path :
                 lambdaPathList) {
-            // TODO: 1/17/17 handle the missing of built projects
                 JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path, outPath),
                         path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
                         Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024, confPath);

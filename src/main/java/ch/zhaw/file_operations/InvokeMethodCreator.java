@@ -28,7 +28,6 @@ public class InvokeMethodCreator {
         NameExpr accessSecretKeyVarExpr = new NameExpr("String awsSecretAccessKey = \"\"");
         NameExpr regionNameVarExpr = new NameExpr("String regionName = \"\"");
         BlockStmt thenIf = new BlockStmt();
-        // TODO: 1/13/17 read default system variables instead of custom
         ASTHelper.addStmt(thenIf, new NameExpr("awsAccessKeyId = System.getenv(\"awsAccessKeyId\")"));
         ASTHelper.addStmt(thenIf, new NameExpr("awsSecretAccessKey = System.getenv(\"awsSecretAccessKey\")"));
         ASTHelper.addStmt(thenIf, new NameExpr("regionName = System.getenv(\"awsRegion\")"));

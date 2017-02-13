@@ -3,15 +3,6 @@ package ch.zhaw.time;
 import java.util.concurrent.TimeUnit;
 
 public class Timer {
-    private static long startTime;
-    private static long endTime;
-
-    public static void start(){
-        startTime = System.currentTimeMillis();
-    }
-    public static void stop(){
-        endTime = System.currentTimeMillis();
-    }
 
     public static String getFormattedTime(String format, long time){
         long millis = time;
