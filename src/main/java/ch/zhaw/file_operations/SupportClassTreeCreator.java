@@ -36,6 +36,20 @@ public class SupportClassTreeCreator {
         List<String> lambdaPathList = new ArrayList<>();
         List<ClassEntity> classEntityList = excludeInners(projectEntity.getClassEntities());
         List<ClassEntity> copyClassList = excludeInners(new JavaProjectEntity(Paths.get(oldPath)).getClassEntities());
+        List<ClassEntity> newClasses = excludeInners(new JavaProjectEntity(Paths.get(newPath)).getClassEntities());
+        ClassEntity tmp = newClasses.get(0);
+        String packageTmp = "";
+        if (tmp.getCu().getPackage() != null) {
+            packageTmp = tmp.getCu().getPackage().getName().toString();
+            packageTmp = packageTmp.replace('.', '/');
+        }
+        String classNameTmp = tmp.getCu().getTypes().get(0).getName();
+        String classEntPath = tmp.getPath().toString();
+        String relatedClassPath = packageTmp + "/" + classNameTmp;
+        String awslPath = classEntPath.substring(0, classEntPath.length() - relatedClassPath.length() - 6);
+        System.out.println(classEntPath);
+        System.out.println(relatedClassPath);
+        System.out.println(awslPath);
 
         int i = 0;
         for (ClassEntity classEntity :
@@ -60,15 +74,12 @@ public class SupportClassTreeCreator {
                         if (methodDeclaration.getParameters() != null) {
                             functionName = functionName + methodDeclaration.getParameters().size();
                         }
-                        String classEntPath = classEntity.getPath().toString();
-                        String relatedClassPath = packageName + "/" + className;
-                        String awslPath = classEntPath.substring(0, classEntPath.length() - relatedClassPath.length() - 5);
+
                         String path = "" + awslPath +
-                                "awsl/" + packageName + "/" + className + "/" + functionName;
-                        System.out.println(path);
+                                "/awsl/" + packageName + "/" + className + "/" + functionName;
                         File file = new File(path);
                         file.mkdirs();
-                        writeCuToFile(awslPath + "awsl/AWSConfEntity.java", UtilityClass.createConfigEntity());
+                        writeCuToFile(awslPath + "/awsl/AWSConfEntity.java", UtilityClass.createConfigEntity());
                         writeCuToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
                         writeCuToFile(path + "/InputType.java", getInputClass(methodEntity, false));
                         String pathLambdaProject = "" + newPath +
