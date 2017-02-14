@@ -60,11 +60,15 @@ public class SupportClassTreeCreator {
                         if (methodDeclaration.getParameters() != null) {
                             functionName = functionName + methodDeclaration.getParameters().size();
                         }
-                        String path = "" + newPath +
-                                "/src/awsl/" + packageName + "/" + className + "/" + functionName;
+                        String classEntPath = classEntity.getPath().toString();
+                        String relatedClassPath = packageName + "/" + className;
+                        String awslPath = classEntPath.substring(0, classEntPath.length() - relatedClassPath.length() - 5);
+                        String path = "" + awslPath +
+                                "awsl/" + packageName + "/" + className + "/" + functionName;
+                        System.out.println(path);
                         File file = new File(path);
                         file.mkdirs();
-                        writeCuToFile(newPath + "/src/awsl/AWSConfEntity.java", UtilityClass.createConfigEntity());
+                        writeCuToFile(awslPath + "awsl/AWSConfEntity.java", UtilityClass.createConfigEntity());
                         writeCuToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
                         writeCuToFile(path + "/InputType.java", getInputClass(methodEntity, false));
                         String pathLambdaProject = "" + newPath +
