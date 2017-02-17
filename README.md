@@ -6,7 +6,7 @@ information about FaaS and it's providers following the link to our recent [blog
 So in common using this tool allows th e customer to make Java project available for uploading into AWS Lambda cloud service and perform automatic deploying.
 
 ## Before start
- For making the project you need maven to be installed and ${maven.home} environment variable to be set. (If maven home
+ For building the project you need maven to be installed and ${maven.home} environment variable to be set. (If maven home
  is't set explicitly as environment variable tool uses default maven home path: '/usr/share/maven/').
 
  For deploying Lambda functions you need to have account at AWS. Then you need to
