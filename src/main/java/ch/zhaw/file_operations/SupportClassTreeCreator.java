@@ -47,10 +47,6 @@ public class SupportClassTreeCreator {
         String classEntPath = tmp.getPath().toString();
         String relatedClassPath = packageTmp + "/" + classNameTmp;
         String awslPath = classEntPath.substring(0, classEntPath.length() - relatedClassPath.length() - 6);
-        System.out.println(classEntPath);
-        System.out.println(relatedClassPath);
-        System.out.println(awslPath);
-
         int i = 0;
         for (ClassEntity classEntity :
                 classEntityList) {

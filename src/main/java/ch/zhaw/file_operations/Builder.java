@@ -38,7 +38,10 @@ public class Builder {
             } catch (IOException e) {
                 e.printStackTrace();
             }
-            jarPathList.add(jarBuilder.mvnBuild());
+            String builtPath = jarBuilder.mvnBuild();
+            if (builtPath != null){
+                jarPathList.add(builtPath);
+            }
         }
         DescriptorCreator.createDescriptor(jarPathList, outPath, Constants.BUILT_DESCRIPTOR_NAME);
         Compile.setTranslatedProjectsNumber(lambdaPathList.size());
