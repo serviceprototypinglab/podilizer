@@ -1,15 +1,17 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Translate;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.Node;
 import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.MethodDeclaration;
+import japa.parser.ast.expr.MethodCallExpr;
 import japa.parser.ast.expr.ObjectCreationExpr;
 import org.codehaus.plexus.util.FileUtils;
 
 import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
@@ -17,19 +19,16 @@ import java.util.List;
 import static ch.zhaw.file_operations.UtilityClass.getInputClass;
 import static ch.zhaw.file_operations.UtilityClass.getOutputClass;
 import static ch.zhaw.file_operations.UtilityClass.writeCuToFile;
-import static java.nio.file.StandardCopyOption.REPLACE_EXISTING;
 
 public class SupportClassTreeCreator {
     private JavaProjectEntity projectEntity;
     private String oldPath;
     private String newPath;
-    private String confPath;
 
-    public SupportClassTreeCreator(JavaProjectEntity projectEntity, String oldPath, String newPath, String confPath) {
+    public SupportClassTreeCreator(JavaProjectEntity projectEntity, String oldPath, String newPath) {
         this.projectEntity = projectEntity;
         this.oldPath = oldPath;
         this.newPath = newPath;
-        this.confPath = confPath;
     }
 
     private List<String> create() {
@@ -37,19 +36,30 @@ public class SupportClassTreeCreator {
         List<String> lambdaPathList = new ArrayList<>();
         List<ClassEntity> classEntityList = excludeInners(projectEntity.getClassEntities());
         List<ClassEntity> copyClassList = excludeInners(new JavaProjectEntity(Paths.get(oldPath)).getClassEntities());
-
+        List<ClassEntity> newClasses = excludeInners(new JavaProjectEntity(Paths.get(newPath)).getClassEntities());
+        ClassEntity tmp = newClasses.get(0);
+        String packageTmp = "";
+        if (tmp.getCu().getPackage() != null) {
+            packageTmp = tmp.getCu().getPackage().getName().toString();
+            packageTmp = packageTmp.replace('.', '/');
+        }
+        String classNameTmp = tmp.getCu().getTypes().get(0).getName();
+        String classEntPath = tmp.getPath().toString();
+        String relatedClassPath = packageTmp + "/" + classNameTmp;
+        String awslPath = classEntPath.substring(0, classEntPath.length() - relatedClassPath.length() - 6);
         int i = 0;
         for (ClassEntity classEntity :
                 classEntityList) {
             List<MethodEntity> methodEntityList = classEntity.getFunctions();
-            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i), confPath);
+            CompilationUnit translatedClass = UtilityClass.translateClass(copyClassList.get(i), "");
             for (MethodEntity methodEntity :
                     methodEntityList) {
                 if (!(methodEntity.getMethodDeclaration().getParentNode() instanceof ObjectCreationExpr)) {
                     MethodDeclaration methodDeclaration = methodEntity.getMethodDeclaration();
 
-                    //if it's not 'get' ot 'set' method
-                    if (!isAccessMethod(methodDeclaration)) {
+                    //if it's not 'get' or 'set' method
+                    if (!UtilityClass.isAccessMethod(methodDeclaration) &
+                            !((methodDeclaration.getBody() == null) || (methodDeclaration.getBody().getStmts() == null))) {
                         String packageName = "";
                         if (classEntity.getCu().getPackage() != null) {
                             packageName = classEntity.getCu().getPackage().getName().toString();
@@ -60,13 +70,14 @@ public class SupportClassTreeCreator {
                         if (methodDeclaration.getParameters() != null) {
                             functionName = functionName + methodDeclaration.getParameters().size();
                         }
-                        String path = "" + newPath +
-                                "/src/awsl/" + packageName + "/" + className + "/" + functionName;
+
+                        String path = "" + awslPath +
+                                "/awsl/" + packageName + "/" + className + "/" + functionName;
                         File file = new File(path);
                         file.mkdirs();
+                        writeCuToFile(awslPath + "/awsl/AWSConfEntity.java", UtilityClass.createConfigEntity());
                         writeCuToFile(path + "/OutputType.java", getOutputClass(methodEntity, false));
                         writeCuToFile(path + "/InputType.java", getInputClass(methodEntity, false));
-
                         String pathLambdaProject = "" + newPath +
                                 "/LambdaProjects/" + packageName + "/" + className + "/" + functionName;
                         File file1 = new File(pathLambdaProject);
@@ -83,8 +94,10 @@ public class SupportClassTreeCreator {
                         lambdaDir.mkdir();
                         LambdaFunction lambdaFunction = new LambdaFunction(methodEntity, translatedClass);
                         lambdaFunction.create();
-                        writeCuToFile(lambdaPath + "/OutputType.java", getOutputClass(methodEntity, true));
-                        writeCuToFile(lambdaPath + "/InputType.java", getInputClass(methodEntity, true));
+                        CompilationUnit outputCU = getOutputClass(methodEntity, true);
+                        writeCuToFile(lambdaPath + "/OutputType.java", outputCU);
+                        CompilationUnit inputCU = getInputClass(methodEntity, true);
+                        writeCuToFile(lambdaPath + "/InputType.java", inputCU);
                         CompilationUnit cuToWrite = lambdaFunction.getNewCU();
                         writeCuToFile(lambdaPath + "/LambdaFunction.java", cuToWrite);
                     }
@@ -95,40 +108,40 @@ public class SupportClassTreeCreator {
         }
         return lambdaPathList;
     }
-    private boolean isAccessMethod(MethodDeclaration methodDeclaration){
-        String str = methodDeclaration.getName().substring(0, 3);
-        if (str.equals("set") | str.equals("get")){
-            if (methodDeclaration.getBody().getStmts().size() < 2){
-                return true;
-            }
-        }
-        return false;
-    }
 
-    public void build(boolean uploadFlag) {
+    public void translate(){
         List<String> lambdaPathList = create();
+
+        //translation statistic fetching
+        Translate.setLambdaFunctionsNumber(lambdaPathList.size());
+
+        DescriptorCreator.createDescriptor(lambdaPathList, newPath, Constants.TRANSLATED_DESCRIPTOR_NAME);
         String suppClassTreePath;
         for (String path :
                 lambdaPathList) {
-            try {
-                suppClassTreePath = path + "/src/main/java/";
-                FileUtils.copyDirectoryStructure(new File(newPath + "/src/"),
-                        new File(suppClassTreePath));
-            } catch (IOException e) {
-                e.printStackTrace();
-            }
-            JarBuilder jarBuilder = new JarBuilder(path);
-            jarBuilder.createJar();
-            if (uploadFlag) {
-                JarUploader jarUploader = new JarUploader(UtilityClass.generateLambdaName(path, newPath),
-                        path + "/target/lambda-java-example-1.0-SNAPSHOT.jar",
-                        Constants.FUNCTION_PACKAGE + ".LambdaFunction::handleRequest", 60, 1024, confPath);
-                jarUploader.uploadFunction();
-                // TODO: 12/2/16 Fix the problem with missing information when function is uploading
+            suppClassTreePath = path + "/src/main/java/";
+            writeSupportClasses(suppClassTreePath);
+        }
+    }
+    private void writeSupportClasses(String path){
+        JavaProjectEntity javaProjectEntity = new JavaProjectEntity(Paths.get(newPath));
+        for (ClassEntity classEntity :
+                javaProjectEntity.getAllClassEntities()) {
+            String cuPath = classEntity.getPath().toString();
+            cuPath = cuPath.substring(newPath.length(), cuPath.length());
+            if (!cuPath.startsWith("/LambdaProjects/")){
+                CompilationUnit cu = classEntity.getCu();
+                String packagePath = cu.getPackage().getName().toString();
+                packagePath = packagePath.replace('.', '/');
+                String absolutePath = path + packagePath + "/";
+                File file = new File(absolutePath);
+                if (!file.exists()){
+                    file.mkdirs();
+                }
+                writeCuToFile(absolutePath + classEntity.getPath().toFile().getName(), cu);
             }
         }
     }
-
     /**
      * excludes compilation units which have inner classes from List<ClassEntity>
      */
@@ -158,11 +171,11 @@ public class SupportClassTreeCreator {
      * @throws IOException
      */
     public String createProjTree(String path) throws IOException {
+        String projectSourceFolder = "/src/main/java";
         File file = new File(path);
         file.mkdir();
-        Files.copy(Paths.get(confPath + "/pom.xml"), Paths.get(path + "/pom.xml"), REPLACE_EXISTING);
-        file = new File(path + "/src/main/java");
+        file = new File(path + projectSourceFolder);
         file.mkdirs();
-        return path + "/src/main/java";
+        return path + projectSourceFolder;
     }
 }

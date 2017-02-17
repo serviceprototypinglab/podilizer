@@ -1,0 +1,15 @@
+Podilizer v2 changelog:
+
+1. Credentials were moved to the environment variables
+2. Input and output improved:
+	a. Apache CLI library used to run the app
+	b. Building output saves into the file instead of overload the command line
+3. Statistic module added 
+4. Performance time module added
+5. The following  restrictions were removed:
+	a. All code has to be located in the ‘src’ directory
+	b. Every .java file needs to have package
+6. Handler Input/Output type changed from POJO to Stream. It allowed us to use custom object mapper and increase the quality of output project
+7. Between phase descriptors generating added.
+8. Bugs fixed
+9. Readme file updated

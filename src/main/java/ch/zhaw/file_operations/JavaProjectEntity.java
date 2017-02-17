@@ -1,5 +1,7 @@
 package ch.zhaw.file_operations;
 
+import japa.parser.ast.CompilationUnit;
+import japa.parser.ast.body.ClassOrInterfaceDeclaration;
 import japa.parser.ast.body.ModifierSet;
 import japa.parser.ast.expr.NameExpr;
 
@@ -17,26 +19,48 @@ public class JavaProjectEntity {
     private String pattern = "*.java";
     private Path location;
     private List<ClassEntity> classEntities;
+    private List<ClassEntity> allClassEntities;
     private List<NameExpr> methodEntities;
+    private List<ClassEntity> unpackagedClasses;
 
     public JavaProjectEntity(Path location) {
         this.location = location;
         Finder finder = new Finder(pattern);
         try {
+
             Files.walkFileTree(location, finder);
-            classEntities = finder.getFiles();
+
+            allClassEntities = finder.getFiles();
+            classEntities = getTranslatable(finder.getFiles());
+            unpackagedClasses = finder.getUnpackagedClasses();
         } catch (IOException e) {
             e.printStackTrace();
         }
-        methodEntities = findAllMethods(classEntities);
+        methodEntities = findAllMethods(allClassEntities);
     }
 
     /**
      * Looks for all files in the defined path with certain pattern
      */
+    private List<ClassEntity> getTranslatable(List<ClassEntity> classEntities){
+        List<ClassEntity> result = new ArrayList<>();
+        for (ClassEntity classEntity :
+                classEntities) {
+            CompilationUnit cu = classEntity.getCu();
+            if (cu.getTypes().size() == 1){
+                ClassOrInterfaceDeclaration type = (ClassOrInterfaceDeclaration) cu.getTypes().get(0);
+                if (!type.isInterface()){
+                    result.add(classEntity);
+                }
+            }
+
+        }
+        return result;
+    }
     public class Finder extends SimpleFileVisitor<Path> {
         private PathMatcher matcher;
         private List<ClassEntity> files = new ArrayList<>();
+        private List<ClassEntity> unpackagedClasses = new ArrayList<>();
 
 
         Finder(String pattern) {
@@ -47,7 +71,11 @@ public class JavaProjectEntity {
         void find(Path file) {
             Path name = file.getFileName();
             if (name != null && matcher.matches(name)) {
-                files.add(new ClassEntity(file));
+                ClassEntity classEntity = new ClassEntity(file);
+                if (classEntity.getCu().getPackage() == null){
+                    unpackagedClasses.add(classEntity);
+                }
+                files.add(classEntity);
             }
         }
 
@@ -60,6 +88,9 @@ public class JavaProjectEntity {
         public List<ClassEntity> getFiles() {
             return files;
         }
+        public List<ClassEntity> getUnpackagedClasses(){
+            return unpackagedClasses;
+        }
     }
 
     public Path getLocation() {
@@ -68,6 +99,14 @@ public class JavaProjectEntity {
 
     public List<ClassEntity> getClassEntities() {
         return classEntities;
+    }
+
+    public List<ClassEntity> getUnpackagedClasses() {
+        return unpackagedClasses;
+    }
+
+    public List<ClassEntity> getAllClassEntities() {
+        return allClassEntities;
     }
 
     /**

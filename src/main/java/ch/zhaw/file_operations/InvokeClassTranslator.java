@@ -3,10 +3,7 @@ package ch.zhaw.file_operations;
 import japa.parser.ASTHelper;
 import japa.parser.ast.CompilationUnit;
 import japa.parser.ast.ImportDeclaration;
-import japa.parser.ast.body.MethodDeclaration;
-import japa.parser.ast.body.ModifierSet;
-import japa.parser.ast.body.Parameter;
-import japa.parser.ast.body.VariableDeclaratorId;
+import japa.parser.ast.body.*;
 import japa.parser.ast.expr.NameExpr;
 import japa.parser.ast.stmt.BlockStmt;
 import japa.parser.ast.type.ClassOrInterfaceType;
@@ -24,7 +21,6 @@ public class InvokeClassTranslator {
     public void generateImports() {
         compilationUnit.setImports(createImports());
     }
-
     private List<ImportDeclaration> createImports() {
         ArrayList<ImportDeclaration> imports = new ArrayList<>();
         ImportDeclaration imd1 = new ImportDeclaration();
@@ -42,11 +38,19 @@ public class InvokeClassTranslator {
         ImportDeclaration imd7 = new ImportDeclaration();
         imd7.setName(new NameExpr("com.fasterxml.jackson.core.JsonProcessingException"));
         ImportDeclaration imd8 = new ImportDeclaration();
-        imd8.setName(new NameExpr("com.fasterxml.jackson.databind.ObjectMapper"));
+        imd8.setName(new NameExpr("com.fasterxml.jackson.databind.*"));
         ImportDeclaration imd9 = new ImportDeclaration();
         imd9.setName(new NameExpr("java.nio.ByteBuffer"));
         ImportDeclaration imd10 = new ImportDeclaration();
         imd10.setName(new NameExpr("java.nio.charset.Charset"));
+        ImportDeclaration imd11 = new ImportDeclaration();
+        imd11.setName(new NameExpr("com.fasterxml.jackson.annotation.*"));
+        ImportDeclaration imd12 = new ImportDeclaration();
+        imd12.setName(new NameExpr("org.ho.yaml.Yaml"));
+        ImportDeclaration imd13 = new ImportDeclaration();
+        imd13.setName(new NameExpr("java.io.*"));
+        ImportDeclaration imd14 = new ImportDeclaration();
+        imd14.setName(new NameExpr("awsl.*"));
         imports.add(imd1);
         imports.add(imd2);
         imports.add(imd3);
@@ -57,6 +61,10 @@ public class InvokeClassTranslator {
         imports.add(imd8);
         imports.add(imd9);
         imports.add(imd10);
+        //imports.add(imd11);
+        imports.add(imd12);
+        imports.add(imd13);
+        imports.add(imd14);
         if (compilationUnit.getImports() != null) {
             imports.addAll(compilationUnit.getImports());
         }

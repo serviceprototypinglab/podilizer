@@ -3,8 +3,6 @@ package ch.zhaw.file_operations;
 import org.ho.yaml.Yaml;
 
 import java.io.*;
-import java.net.URISyntaxException;
-import java.net.URL;
 
 public class ConfigReader {
     /**
@@ -16,7 +14,7 @@ public class ConfigReader {
     public static YmlEntity getConfig(String confPath) {
         YmlEntity config = null;
         try {
-            config = Yaml.loadType(new File(confPath + "/jyaml.yml"), YmlEntity.class);
+            config = Yaml.loadType(new File(confPath), YmlEntity.class);
         } catch (FileNotFoundException e) {
             e.printStackTrace();
         }

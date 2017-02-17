@@ -1,12 +1,12 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Compile;
 import org.apache.maven.shared.invoker.*;
+import org.codehaus.plexus.util.IOUtil;
+import sun.rmi.log.LogHandler;
 
 import java.io.*;
 import java.net.URISyntaxException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.util.Arrays;
 
 
@@ -37,34 +37,47 @@ public class JarBuilder {
      *
      * @throws URISyntaxException
      */
-    private void mvnBuild() throws URISyntaxException {
+    public String mvnBuild() {
         InvocationRequest request = new DefaultInvocationRequest();
-        request.setPomFile(new File(path + "/pom.xml"));
+        request.setPomFile(new File(path));
         request.setGoals(Arrays.asList("clean", "install"));
-
+        File buildLog = new File(path + "/buildLog.txt");
 
         Invoker invoker = new DefaultInvoker();
         try {
             if (invoker.getMavenHome() == null){
                 invoker.setMavenHome(new File("/usr/share/maven/"));
             }
+            //log the build output to file
+            PrintStream printStream = new PrintStream(buildLog);
+            InvocationOutputHandler outputHandler = new PrintStreamHandler(printStream, true);
+            invoker.setOutputHandler(outputHandler);
 
-            invoker.execute(request);
+            InvocationResult result = invoker.execute(request);
+            printBuildResult(path, result.getExitCode());
+            printStream.close();
+            if (result.getExitCode() == 0){
+                return path;
+            }
         } catch (MavenInvocationException e) {
             e.printStackTrace();
-        }
-    }
-
-    /**
-     * Creates built jar of 'Lambda Function'
-     */
-    public void createJar() {
-        try {
-            mvnBuild();
-        } catch (URISyntaxException e) {
+        } catch (FileNotFoundException e) {
             e.printStackTrace();
         }
+        return null;
     }
 
+    private void printBuildResult(String path, int exitCode){
+        String result = "Build result of project " + path + " : ";
+        if (exitCode == 0) {
+            result += "[SUCCESS]";
+
+            //fetch the compile statistic
+            Compile.countProject();
+        } else {
+            result += "[FAILURE]";
+        }
+        System.out.println(result);
+    }
 
 }

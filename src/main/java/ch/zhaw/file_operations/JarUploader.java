@@ -1,5 +1,7 @@
 package ch.zhaw.file_operations;
 
+import ch.zhaw.statistic.Upload;
+
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
@@ -11,6 +13,7 @@ class JarUploader {
     private String functionName;
     private String zipFile;
     private String handler;
+    private String confPath;
     private int timeout;
     private int memorySize;
 
@@ -22,6 +25,7 @@ class JarUploader {
         this.memorySize = memorySize;
         this.region = ConfigReader.getConfig(confPath).getAwsRegion();
         this.role = ConfigReader.getConfig(confPath).getAwsRole();
+        this.confPath = confPath;
     }
 
     /**
@@ -29,7 +33,7 @@ class JarUploader {
      *
      * @param command the {@code String} to be run
      */
-    private void writeIntoCMD(String command) {
+    private void writeIntoCMD(final String command) {
         Runtime runtime = Runtime.getRuntime();
         try {
             final Process process = runtime.exec(command);
@@ -42,6 +46,10 @@ class JarUploader {
                     try {
                         while ((line = input.readLine()) != null)
                             System.out.println(line);
+                        //fetch lambda creation statistic if it's not delete command
+                        if (command.startsWith("aws")){
+                            Upload.countCreatedFunctions();
+                        }
                         while ((lineError = outErrors.readLine()) != null) {
                             System.err.println(lineError);
                         }
@@ -69,6 +77,9 @@ class JarUploader {
                 " --region " + region +
                 " --zip-file fileb://" + zipFile +
                 " --role " + role +
+                " --environment Variables={awsAccessKeyId=" + ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "," +
+                "awsSecretAccessKey=" + ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "," +
+                "awsRegion=" + ConfigReader.getConfig(confPath).getAwsRegion() + "}" +
                 " --handler " + handler +
                 " --runtime " + runtime +
                 " --timeout " + timeout +
