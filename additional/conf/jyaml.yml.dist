@@ -1,4 +1,0 @@
-awsRegion:              # the AWS awsRegion for created Lambda functions. Example: 'awsRegion: eu-west-2'
-awsRole:                # execution awsRole of the result functions
-awsAccessKeyId:         # your Access Key Id provided by AWS
-awsSecretAccessKey:     # your Secret Access Key provided by AWS

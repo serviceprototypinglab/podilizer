@@ -25,8 +25,8 @@ public class Executor {
         options.addOption(Option.builder(optionB.getKey()).longOpt(optionB.getValue()).hasArg().numberOfArgs(2).
                 desc("Build the project. Takes two arguments:" +
                         " translated project to build path and path of configured pom.xml file").build());
-        options.addOption(Option.builder(optionU.getKey()).longOpt(optionU.getValue()).hasArg().numberOfArgs(2).
-                desc("Upload the project. Takes two arguments: translated and built project path and .yml conf file path").build());
+        options.addOption(Option.builder(optionU.getKey()).longOpt(optionU.getValue()).hasArg().numberOfArgs(1).
+                desc("Upload the project. Takes as an argument translated and built project ").build());
         options.addOption(Option.builder("help").hasArg(false).desc("output help text").numberOfArgs(0).build());
         helpFormatter = new HelpFormatter();
     }
@@ -57,6 +57,9 @@ public class Executor {
             System.exit(1);
         }
         if (cmd.hasOption("help")){
+            AwsCredentialsReader credentialsReader = new AwsCredentialsReader();
+            credentialsReader.read();
+            System.out.println(credentialsReader.getAwsAccessKeyId() + "  " + credentialsReader.getAwsSecretAccessKey());
             helpFormatter.printHelp("Podilizer", options, true);
             System.exit(1);
         }
@@ -140,7 +143,7 @@ public class Executor {
         System.out.println("\n---Lambda functions creating started---\n");
         startCount();
         String outPath = cmd.getOptionValues(optionU.getKey())[0];
-        String confPath = cmd.getOptionValues(optionU.getKey())[1];
+        String confPath = "todo";
 
         LambdaCreator lambdaCreator = new LambdaCreator(outPath, confPath);
         lambdaCreator.create();

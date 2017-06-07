@@ -49,19 +49,18 @@ So in common using this tool allows th e customer to make Java project available
     ```
     $ java -jar target/Podilizer-0.1.jar -b /home/user/out additional/conf/pom.xml
     ```
-  * '-u' - Creates the Lambda functions from translated project at path <arg1> using yaml config file at path <arg2>. The sample of conf file located
-  at additional/conf/jyaml.yml.dist in the Podilizer project folder. Before run rename jyaml.yml.dist into jyaml.yml and fill the fields in the file:
+  * '-u' - Creates the Lambda functions from translated project at path <arg1>
     ```
-    $ java -jar [path of the Podilizer-0.1.jar] -u <arg1> <arg2>
+    $ java -jar [path of the Podilizer-0.1.jar] -u <arg1>
     ```
     Example:
     ```
-    $ java -jar target/Podilizer-0.1.jar -u /home/user/out additional/conf/jyaml.yml
+    $ java -jar target/Podilizer-0.1.jar -u /home/user/out
     ```
   * You can combine all of these options to run needed phases. For example if you want to run full process with one command,
   it would look like:
     ```
-    $ java -jar target/Podilizer-0.1.jar -t /home/user/in/ /home/user/out/ -b /home/user/out/ additional/conf/pom.xml -u /home/user/out/ additional/conf/jyaml.yml
+    $ java -jar target/Podilizer-0.1.jar -t /home/user/in/ /home/user/out/ -b /home/user/out/ additional/conf/pom.xml -u /home/user/out/
     ```
   * Option '-help' shows the usage of tool:
     ```

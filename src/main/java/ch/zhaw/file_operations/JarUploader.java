@@ -14,17 +14,19 @@ class JarUploader {
     private String zipFile;
     private String handler;
     private String confPath;
+    private String accountId;
     private int timeout;
     private int memorySize;
 
     JarUploader(String functionName, String zipFile, String handler, int timeout, int memorySize, String confPath) {
+        // TODO: 6/7/17 change confPath namings in the chain to region
         this.functionName = functionName;
         this.zipFile = zipFile;
         this.handler = handler;
         this.timeout = timeout;
         this.memorySize = memorySize;
-        this.region = ConfigReader.getConfig(confPath).getAwsRegion();
-        this.role = ConfigReader.getConfig(confPath).getAwsRole();
+        this.region = confPath;
+//        this.role = ConfigReader.getConfig(confPath).getAwsRole();
         this.confPath = confPath;
     }
 
@@ -44,10 +46,15 @@ class JarUploader {
                     BufferedReader outErrors = new BufferedReader(new InputStreamReader(process.getErrorStream()));
                     String lineError = null;
                     try {
-                        while ((line = input.readLine()) != null)
-                            System.out.println(line);
+                        if (command.startsWith("aws sts")) {
+                            accountId = input.readLine();
+                            role = "arn:aws:iam::" + accountId + ":role/lambda_basic_execution";
+                            return;
+                        }
                         //fetch lambda creation statistic if it's not delete command
-                        if (command.startsWith("aws")){
+                        if (command.startsWith("aws lambda create-function")){
+                            while ((line = input.readLine()) != null)
+                                //System.out.println(line);
                             Upload.countCreatedFunctions();
                         }
                         while ((lineError = outErrors.readLine()) != null) {
@@ -72,32 +79,45 @@ class JarUploader {
      * @return generated {@code String}
      */
     private String getCommand() {
+        AwsCredentialsReader awsCredentialsReader = new AwsCredentialsReader();
+        awsCredentialsReader.read();
         String result = "aws lambda create-function" +
                 " --function-name " + functionName +
-                " --region " + region +
+                " --region " + awsCredentialsReader.getRegion() +
                 " --zip-file fileb://" + zipFile +
                 " --role " + role +
-                " --environment Variables={awsAccessKeyId=" + ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "," +
-                "awsSecretAccessKey=" + ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "," +
-                "awsRegion=" + ConfigReader.getConfig(confPath).getAwsRegion() + "}" +
+//                " --environment Variables={awsAccessKeyId=" + ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "," +
+//                "awsSecretAccessKey=" + ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "," +
+//                "awsRegion=" + ConfigReader.getConfig(confPath).getAwsRegion() + "}" +
+                " --environment Variables={awsAccessKeyId=" + awsCredentialsReader.getAwsAccessKeyId() + "," +
+                "awsSecretAccessKey=" + awsCredentialsReader.getAwsAccessKeyId() + "," +
+                "awsRegion=" + awsCredentialsReader.getRegion() + "}" +
                 " --handler " + handler +
                 " --runtime " + runtime +
                 " --timeout " + timeout +
                 " --memory-size " + memorySize;
-        System.out.println(result);
+        //System.out.println(result);
         return result;
     }
 
     private String getDeleteCommand() {
-        String result = "sudo aws lambda delete-function " +
+        String result = "aws lambda delete-function " +
                 "--function-name " + functionName;
         return result;
+    }
+    private String getRoleCommand() {
+        return "aws sts get-caller-identity --output text --query Account";
+    }
+
+    public String getRole() {
+        return role;
     }
 
     /**
      * Creates Lambda Function on AWS and uploads the source code jar
      */
     void uploadFunction() {
+        writeIntoCMD(getRoleCommand());
         writeIntoCMD(getDeleteCommand());
         writeIntoCMD(getCommand());
     }
