@@ -35,7 +35,9 @@ public class InvokeMethodCreator {
         NameExpr conditionSide1 = new NameExpr("System.getenv(\"awsAccessKeyId\")");
         NameExpr conditionSide2 = new NameExpr("null");
         NameExpr compare = new NameExpr(conditionSide1 + " != " + conditionSide2);
-        String confPath = newPath + "/jyaml.yml";
+        // TODO: 6/8/17 fix issue with conf file path and the following lambda name issue
+//        String confPath = newPath + "/jyaml.yml";
+        String confPath = "../jyaml.yml";
         NameExpr elseExpr = new NameExpr("try {\n" +
                 "            awsAccessKeyId = Yaml.loadType(new File(\"" + confPath +"\"), AWSConfEntity.class).getAwsAccessKeyId();\n" +
                 "            awsSecretAccessKey = Yaml.loadType(new File(\"" + confPath +"\"), AWSConfEntity.class).getAwsSecretAccessKey();\n" +

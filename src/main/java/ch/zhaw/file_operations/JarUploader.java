@@ -53,8 +53,6 @@ class JarUploader {
                         }
                         //fetch lambda creation statistic if it's not delete command
                         if (command.startsWith("aws lambda create-function")){
-                            while ((line = input.readLine()) != null)
-                                //System.out.println(line);
                             Upload.countCreatedFunctions();
                         }
                         while ((lineError = outErrors.readLine()) != null) {
