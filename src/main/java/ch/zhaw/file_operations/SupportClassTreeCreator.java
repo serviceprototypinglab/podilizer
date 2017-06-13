@@ -129,7 +129,8 @@ public class SupportClassTreeCreator {
                 javaProjectEntity.getAllClassEntities()) {
             String cuPath = classEntity.getPath().toString();
             cuPath = cuPath.substring(newPath.length(), cuPath.length());
-            if (!cuPath.startsWith("/LambdaProjects/")){
+            //mark   "/LambdaProjects/" -> changed to -> "LambdaProjects/" in the condition box
+            if (!cuPath.startsWith("LambdaProjects/")){
                 CompilationUnit cu = classEntity.getCu();
                 String packagePath = cu.getPackage().getName().toString();
                 packagePath = packagePath.replace('.', '/');

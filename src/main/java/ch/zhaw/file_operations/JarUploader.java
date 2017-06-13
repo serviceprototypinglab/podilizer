@@ -41,6 +41,7 @@ class JarUploader {
             final Process process = runtime.exec(command);
             new Thread(new Runnable() {
                 public void run() {
+                    boolean error = false;
                     BufferedReader input = new BufferedReader(new InputStreamReader(process.getInputStream()));
                     String line = null;
                     BufferedReader outErrors = new BufferedReader(new InputStreamReader(process.getErrorStream()));
@@ -49,15 +50,19 @@ class JarUploader {
                         if (command.startsWith("aws sts")) {
                             accountId = input.readLine();
                             role = "arn:aws:iam::" + accountId + ":role/lambda_basic_execution";
-                            return;
-                        }
-                        //fetch lambda creation statistic if it's not delete command
-                        if (command.startsWith("aws lambda create-function")){
-                            Upload.countCreatedFunctions();
                         }
                         while ((lineError = outErrors.readLine()) != null) {
+                            if (command.startsWith("aws lambda create-function")){
+                                error = true;
+                            }
                             System.err.println(lineError);
                         }
+                        //fetch lambda creation statistic if it's not delete command
+                        if (command.startsWith("aws lambda create-function") && !error){
+                            Upload.countCreatedFunctions();
+                            System.out.println("Function " + functionName + " was successfully created");
+                        }
+
                     } catch (IOException e) {
                         e.printStackTrace();
                     }
@@ -84,11 +89,8 @@ class JarUploader {
                 " --region " + awsCredentialsReader.getRegion() +
                 " --zip-file fileb://" + zipFile +
                 " --role " + role +
-//                " --environment Variables={awsAccessKeyId=" + ConfigReader.getConfig(confPath).getAwsAccessKeyId() + "," +
-//                "awsSecretAccessKey=" + ConfigReader.getConfig(confPath).getAwsSecretAccessKey() + "," +
-//                "awsRegion=" + ConfigReader.getConfig(confPath).getAwsRegion() + "}" +
                 " --environment Variables={awsAccessKeyId=" + awsCredentialsReader.getAwsAccessKeyId() + "," +
-                "awsSecretAccessKey=" + awsCredentialsReader.getAwsAccessKeyId() + "," +
+                "awsSecretAccessKey=" + awsCredentialsReader.getAwsSecretAccessKey() + "," +
                 "awsRegion=" + awsCredentialsReader.getRegion() + "}" +
                 " --handler " + handler +
                 " --runtime " + runtime +
@@ -102,6 +104,9 @@ class JarUploader {
         String result = "aws lambda delete-function " +
                 "--function-name " + functionName;
         return result;
+    }
+    private String getFunctionCommand(String functionName) {
+        return "aws lambda get-function --function-name " + functionName;
     }
     private String getRoleCommand() {
         return "aws sts get-caller-identity --output text --query Account";
