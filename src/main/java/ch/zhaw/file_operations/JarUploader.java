@@ -18,6 +18,10 @@ class JarUploader {
     private int timeout;
     private int memorySize;
 
+    private String globalconf = "";
+    //private String globalconf = "--no-verify-ssl";
+    //private String globalconf = "--endpoint-url http://localhost:10000/";
+
     JarUploader(String functionName, String zipFile, String handler, int timeout, int memorySize, String confPath) {
         // TODO: 6/7/17 change confPath namings in the chain to region
         this.functionName = functionName;
@@ -84,7 +88,7 @@ class JarUploader {
     private String getCommand() {
         AwsCredentialsReader awsCredentialsReader = new AwsCredentialsReader();
         awsCredentialsReader.read();
-        String result = "aws lambda create-function" +
+        String result = "aws " + globalconf + " lambda create-function" +
                 " --function-name " + functionName +
                 " --region " + awsCredentialsReader.getRegion() +
                 " --zip-file fileb://" + zipFile +
@@ -101,15 +105,15 @@ class JarUploader {
     }
 
     private String getDeleteCommand() {
-        String result = "aws lambda delete-function " +
+        String result = "aws " + globalconf + " lambda delete-function " +
                 "--function-name " + functionName;
         return result;
     }
     private String getFunctionCommand(String functionName) {
-        return "aws lambda get-function --function-name " + functionName;
+        return "aws " + globalconf + " lambda get-function --function-name " + functionName;
     }
     private String getRoleCommand() {
-        return "aws sts get-caller-identity --output text --query Account";
+        return "aws " + globalconf + " sts get-caller-identity --output text --query Account";
     }
 
     public String getRole() {
